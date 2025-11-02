@@ -1,0 +1,1 @@
+streamlit run text_classification_system.py --server.headless true --server.port 8501
