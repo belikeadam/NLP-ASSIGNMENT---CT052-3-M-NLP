@@ -6,12 +6,12 @@
 """
 INSTALLATION INSTRUCTIONS:
 1. Create a folder called 'text_classification'
-2. Save this file as 'main.py' in that folder
+2. Save this file as 'text_classification_system.py' in that folder
 3. Install required packages:
    pip install pandas numpy scikit-learn matplotlib seaborn plotly streamlit kagglehub nltk wordcloud imbalanced-learn
 
-4. For training: python main.py --mode train
-5. For deployment: streamlit run main.py --mode deploy
+4. For training: python text_classification_system.py --mode train
+5. For deployment: streamlit run text_classification_system.py
 
 The system will automatically download the dataset from Kaggle on first run.
 """
@@ -65,7 +65,13 @@ try:
     nltk.download('stopwords', quiet=True)
     nltk.download('wordnet', quiet=True)
     nltk.download('omw-1.4', quiet=True)
-except:
+    # Try to download punkt_tab for newer NLTK versions
+    try:
+        nltk.download('punkt_tab', quiet=True)
+    except:
+        pass
+except Exception as e:
+    print(f"Warning: Some NLTK data download failed: {e}")
     pass
 
 # ============================================================================
@@ -140,7 +146,9 @@ class KaggleDataService:
     """Handles dataset loading from Kaggle and local sources"""
     
     def __init__(self):
-        self.cache_dir = "cache"
+        # Use absolute path based on script location
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.cache_dir = os.path.join(script_dir, "cache")
         os.makedirs(self.cache_dir, exist_ok=True)
         
     def load_spam_dataset(self) -> pd.DataFrame:
@@ -271,8 +279,10 @@ class AutomatedEDA:
     """Comprehensive Exploratory Data Analysis"""
     
     def __init__(self, output_dir: str = "eda_results"):
-        self.output_dir = output_dir
-        os.makedirs(output_dir, exist_ok=True)
+        # Use absolute path based on script location
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.output_dir = os.path.join(script_dir, output_dir)
+        os.makedirs(self.output_dir, exist_ok=True)
         
     def generate_full_report(self, df: pd.DataFrame, text_col: str = 'text', 
                             label_col: str = 'label') -> Dict:
@@ -747,8 +757,10 @@ class ModelVisualizationService:
     """Generate visualizations for model comparison"""
     
     def __init__(self, output_dir: str = "model_results"):
-        self.output_dir = output_dir
-        os.makedirs(output_dir, exist_ok=True)
+        # Use absolute path based on script location
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.output_dir = os.path.join(script_dir, output_dir)
+        os.makedirs(self.output_dir, exist_ok=True)
     
     def create_comparison_charts(self, comparison_df: pd.DataFrame):
         """Create model comparison visualizations"""
@@ -836,8 +848,10 @@ class ModelPersistenceService:
     """Save and load trained models"""
     
     def __init__(self, models_dir: str = "saved_models"):
-        self.models_dir = models_dir
-        os.makedirs(models_dir, exist_ok=True)
+        # Use absolute path based on script location
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.models_dir = os.path.join(script_dir, models_dir)
+        os.makedirs(self.models_dir, exist_ok=True)
     
     def save_model(self, model: Any, vectorizer: Any, model_name: str, metrics: ModelMetrics):
         """Save model, vectorizer, and metadata"""
@@ -981,7 +995,7 @@ class TrainingPipeline:
         print(f"   • EDA: eda_results/")
         print(f"   • Models: model_results/")
         print(f"   • Best Model: {model_path}")
-        print(f"\n🚀 Ready for deployment! Run: streamlit run main.py --mode deploy")
+        print(f"\n🚀 Ready for deployment! Run: streamlit run text_classification_system.py")
         
         return best_model_result
 
@@ -1063,7 +1077,7 @@ def create_deployment_app():
             return persistence_service.load_latest_model()
         except Exception as e:
             st.error(f"❌ Error loading model: {e}")
-            st.info("💡 Please run training first: python main.py --mode train")
+            st.info("💡 Please run training first: python text_classification_system.py --mode train")
             return None
     
     model_package = load_model()
@@ -1315,22 +1329,23 @@ def main():
     parser.add_argument('--mode', type=str, default='train',
                        choices=['train', 'deploy'],
                        help='Mode: train or deploy')
-    
+
     args = parser.parse_args()
-    
+
     if args.mode == 'train':
         print("\n" + "="*70)
         print("🎓 TEXT CLASSIFICATION SYSTEM")
         print("NLP Assignment - Part A, Question 2")
         print("="*70)
-        
+
         pipeline = TrainingPipeline()
         pipeline.run_full_pipeline()
-        
+
     elif args.mode == 'deploy':
         print("\n🚀 Starting deployment server...")
         print("📱 Open your browser to view the app")
-        create_deployment_app()
+        print("❌ Error: Use 'streamlit run text_classification_system.py' instead")
+        print("   Do not use --mode deploy with streamlit run")
 
 if __name__ == "__main__":
     # Check if running in Streamlit
@@ -1339,8 +1354,13 @@ if __name__ == "__main__":
         # If we can access st.runtime, we're in Streamlit
         from streamlit.runtime.scriptrunner import get_script_run_ctx
         if get_script_run_ctx() is not None:
+            # Running in Streamlit - execute app directly
             create_deployment_app()
         else:
             main()
-    except:
+    except ImportError:
+        # Streamlit not available
+        main()
+    except Exception as e:
+        print(f"Error: {e}")
         main()
