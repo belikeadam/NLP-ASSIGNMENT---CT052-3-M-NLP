@@ -953,7 +953,14 @@ class SpellCheckerGUI:
         search_frame.pack(fill='x', padx=10, pady=(0, 10))
         
         self.search_var = tk.StringVar()
-        self.search_var.trace('w', self._on_search)
+        
+        # Fix for Tcl 9 compatibility
+        try:
+            # Modern Tkinter (Tcl 9+)
+            self.search_var.trace_add('write', self._on_search)
+        except AttributeError:
+            # Legacy Tkinter (Tcl 8)
+            self.search_var.trace('w', self._on_search)
         
         search_entry = tk.Entry(
             search_frame,
