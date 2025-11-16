@@ -998,6 +998,12 @@ def create_deployment_app():
         initial_sidebar_state="expanded"
     )
     
+    # Initialize session state
+    if 'input_text' not in st.session_state:
+        st.session_state.input_text = ""
+    if 'show_literature' not in st.session_state:
+        st.session_state.show_literature = False
+    
     # Custom CSS for responsive design
     st.markdown("""
         <style>
@@ -1177,10 +1183,9 @@ def create_deployment_app():
         
         # Literature comparison toggle
         if st.button("View Literature Comparison"):
-            st.session_state['show_literature'] = not st.session_state.get('show_literature', False)
+            st.session_state.show_literature = not st.session_state.show_literature
     
-    # Main content - Responsive layout
-    # On mobile: stack vertically; On desktop: side by side
+    # Main content
     col1, col2 = st.columns([2, 1])
     
     with col1:
@@ -1207,26 +1212,28 @@ def create_deployment_app():
         
         btn_col1, btn_col2, btn_col3 = st.columns([1, 1, 1])
         with btn_col1:
-            if st.button("Try Spam Example", use_container_width=True):
-                st.session_state['input_text'] = random.choice(spam_examples)
+            if st.button("Try Spam Example", key="spam_btn"):
+                st.session_state.input_text = random.choice(spam_examples)
+                st.rerun()
         with btn_col2:
-            if st.button("Try Ham Example", use_container_width=True):
-                st.session_state['input_text'] = random.choice(ham_examples)
+            if st.button("Try Ham Example", key="ham_btn"):
+                st.session_state.input_text = random.choice(ham_examples)
+                st.rerun()
         with btn_col3:
-            if st.button("Clear", use_container_width=True):
-                st.session_state['input_text'] = ""
+            if st.button("Clear", key="clear_btn"):
+                st.session_state.input_text = ""
+                st.rerun()
         
-        # Text input
+        # Text input - use session state variable as widget key for automatic binding
         user_input = st.text_area(
             "Your message:",
-            value=st.session_state.get('input_text', ''),
             height=150,
             placeholder="Type or paste your text message here...",
-            key="text_input"
+            key="input_text"
         )
         
         # Analyze button
-        analyze_clicked = st.button("Analyze Message", type="primary", use_container_width=True)
+        analyze_clicked = st.button("Analyze Message", type="primary", key="analyze_btn")
         
         if analyze_clicked and user_input.strip():
             with st.spinner("Analyzing message..."):
@@ -1258,7 +1265,7 @@ def create_deployment_app():
                 if prediction.lower() == 'spam':
                     st.markdown(f"""
                         <div class="prediction-box spam-box">
-                            <h2 style="margin:0;">SPAM DETECTED</h2>
+                            <h2 style="margin:0;">🚨 SPAM DETECTED</h2>
                             <p style="margin:0.5rem 0;">This message appears to be spam.</p>
                         </div>
                     """, unsafe_allow_html=True)
@@ -1266,7 +1273,7 @@ def create_deployment_app():
                 else:
                     st.markdown(f"""
                         <div class="prediction-box ham-box">
-                            <h2 style="margin:0;">LEGITIMATE MESSAGE</h2>
+                            <h2 style="margin:0;">✅ LEGITIMATE MESSAGE</h2>
                             <p style="margin:0.5rem 0;">This message appears to be legitimate.</p>
                         </div>
                     """, unsafe_allow_html=True)
@@ -1332,7 +1339,7 @@ def create_deployment_app():
             }
         ))
         fig.update_layout(height=250, margin=dict(l=20, r=20, t=40, b=20))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # Dataset distribution
         st.markdown("### Training Data")
@@ -1352,7 +1359,7 @@ def create_deployment_app():
             showlegend=True,
             legend=dict(orientation="h", yanchor="bottom", y=-0.1, x=0.5, xanchor="center")
         )
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, width='stretch')
         
         # Processing pipeline
         st.markdown("### Processing Pipeline")
@@ -1370,7 +1377,7 @@ def create_deployment_app():
         """, unsafe_allow_html=True)
     
     # Literature comparison section
-    if st.session_state.get('show_literature', False):
+    if st.session_state.show_literature:
         st.markdown("---")
         st.subheader("Comparison with Literature")
         
@@ -1389,7 +1396,7 @@ def create_deployment_app():
         
         with col1:
             st.markdown("**Literature Benchmarks:**")
-            st.dataframe(lit_df, hide_index=True, use_container_width=True)
+            st.dataframe(lit_df, hide_index=True)
         
         with col2:
             st.markdown("**Our Model Performance:**")
@@ -1400,7 +1407,7 @@ def create_deployment_app():
                 'Recall': f"{metrics['recall']:.3f}",
                 'F1-Score': f"{metrics['f1_score']:.3f}"
             }])
-            st.dataframe(our_perf, hide_index=True, use_container_width=True)
+            st.dataframe(our_perf, hide_index=True)
         
         st.markdown("""
         <div class="info-box">
