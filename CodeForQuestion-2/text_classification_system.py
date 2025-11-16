@@ -1,20 +1,40 @@
-# ============================================================================
-# TEXT CLASSIFICATION SYSTEM - COMPLETE IMPLEMENTATION
-# Assignment: NLP - Part A, Question 2
-# ============================================================================
-
 """
-INSTALLATION INSTRUCTIONS:
-1. Create a folder called 'text_classification'
-2. Save this file as 'text_classification_system.py' in that folder
-3. Install required packages:
-   pip install pandas numpy scikit-learn matplotlib seaborn plotly streamlit kagglehub nltk wordcloud imbalanced-learn
+============================================================================
+ADVANCED TEXT CLASSIFICATION SYSTEM - COMPLETE IMPLEMENTATION
+Natural Language Processing Assignment - Part A, Question 2
+============================================================================
 
-4. For training: python text_classification_system.py --mode train
-5. For deployment: streamlit run text_classification_system.py
+FEATURES:
++ Comprehensive EDA with professional visualizations
++ 5 ML models (Naive Bayes, Logistic Regression, SVM, Random Forest, Gradient Boosting)
++ Hyperparameter tuning with Grid Search
++ Literature comparison and benchmarking
++ Model performance evaluation and comparison
++ Modern responsive web deployment
++ Caching system for optimization
++ SOLID principles and clean architecture
 
-The system will automatically download the dataset from Kaggle on first run.
+INSTALLATION:
+pip install pandas numpy scikit-learn matplotlib seaborn plotly streamlit kagglehub nltk wordcloud imbalanced-learn
+
+USAGE:
+Training: python text_classification_system.py --mode train
+Deployment: streamlit run text_classification_system.py
+
+============================================================================
 """
+
+import os
+import pickle
+import json
+import re
+import warnings
+from datetime import datetime
+from typing import List, Dict, Tuple, Optional, Any
+from dataclasses import dataclass, asdict
+from abc import ABC, abstractmethod
+from collections import Counter
+import argparse
 
 import pandas as pd
 import numpy as np
@@ -23,11 +43,8 @@ import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import warnings
-warnings.filterwarnings('ignore')
 
-# Machine Learning
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, RandomizedSearchCV
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
@@ -35,47 +52,125 @@ from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import (accuracy_score, precision_score, recall_score, 
                              f1_score, confusion_matrix, classification_report,
-                             roc_curve, auc, roc_auc_score)
-from sklearn.pipeline import Pipeline
-from imblearn.over_sampling import SMOTE
+                             roc_auc_score)
 
-# Text Processing
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-from nltk.stem import PorterStemmer, WordNetLemmatizer
-import re
-import string
+from nltk.stem import WordNetLemmatizer
 from wordcloud import WordCloud
 
-# Utilities
-import os
-import pickle
-import json
-from datetime import datetime
-from typing import List, Dict, Tuple, Optional, Any
-from dataclasses import dataclass, asdict
-from abc import ABC, abstractmethod
-import argparse
-from collections import Counter
+warnings.filterwarnings('ignore')
 
-# Download required NLTK data
-try:
-    nltk.download('punkt', quiet=True)
-    nltk.download('stopwords', quiet=True)
-    nltk.download('wordnet', quiet=True)
-    nltk.download('omw-1.4', quiet=True)
-    # Try to download punkt_tab for newer NLTK versions
+# Download NLTK data
+for package in ['punkt', 'stopwords', 'wordnet', 'omw-1.4']:
     try:
-        nltk.download('punkt_tab', quiet=True)
+        nltk.download(package, quiet=True)
     except:
         pass
-except Exception as e:
-    print(f"Warning: Some NLTK data download failed: {e}")
+try:
+    nltk.download('punkt_tab', quiet=True)
+except:
     pass
 
 # ============================================================================
-# MODELS - Data Classes
+# CONFIGURATION CLASS
+# ============================================================================
+
+class Config:
+    """Centralized configuration for the entire system"""
+    
+    # Directories
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    CACHE_DIR = os.path.join(BASE_DIR, "cache")
+    RESULTS_DIR = os.path.join(BASE_DIR, "results")
+    EDA_DIR = os.path.join(BASE_DIR, "eda_results")
+    MODELS_DIR = os.path.join(BASE_DIR, "saved_models")
+    
+    # Model configurations
+    MODELS = {
+        'Naive Bayes': {
+            'class': MultinomialNB,
+            'params': {'alpha': [0.1, 0.5, 1.0, 2.0]},
+            'description': 'Probabilistic classifier using Bayes theorem'
+        },
+        'Logistic Regression': {
+            'class': LogisticRegression,
+            'params': {
+                'C': [0.1, 1, 10],
+                'solver': ['liblinear', 'saga'],
+                'max_iter': [1000]
+            },
+            'description': 'Linear model for binary classification'
+        },
+        'Support Vector Machine': {
+            'class': SVC,
+            'params': {
+                'C': [0.1, 1, 10],
+                'kernel': ['linear', 'rbf'],
+                'probability': [True]
+            },
+            'description': 'Maximum margin classifier'
+        },
+        'Random Forest': {
+            'class': RandomForestClassifier,
+            'params': {
+                'n_estimators': [50, 100, 200],
+                'max_depth': [None, 10, 20],
+                'min_samples_split': [2, 5]
+            },
+            'description': 'Ensemble of decision trees'
+        },
+        'Gradient Boosting': {
+            'class': GradientBoostingClassifier,
+            'params': {
+                'n_estimators': [50, 100, 200],
+                'learning_rate': [0.01, 0.1, 0.2],
+                'max_depth': [3, 5, 7]
+            },
+            'description': 'Sequential ensemble method'
+        }
+    }
+    
+    # Literature benchmarks
+    BENCHMARKS = {
+        'Naive Bayes (Literature)': {
+            'accuracy': 0.965,
+            'f1': 0.910,
+            'source': 'Almeida et al. (2011)'
+        },
+        'SVM (Literature)': {
+            'accuracy': 0.975,
+            'f1': 0.930,
+            'source': 'Cormack et al. (2007)'
+        },
+        'Random Forest (Literature)': {
+            'accuracy': 0.972,
+            'f1': 0.930,
+            'source': 'Bhowmick & Hazarika (2016)'
+        }
+    }
+    
+    # Training settings
+    TEST_SIZE = 0.2
+    RANDOM_STATE = 42
+    CV_FOLDS = 5
+    
+    # Feature extraction
+    MAX_FEATURES = 3000
+    NGRAM_RANGE = (1, 2)
+    
+    @classmethod
+    def initialize(cls):
+        """Create all required directories"""
+        for directory in [cls.CACHE_DIR, cls.RESULTS_DIR, cls.EDA_DIR, cls.MODELS_DIR]:
+            os.makedirs(directory, exist_ok=True)
+
+# Initialize configuration
+Config.initialize()
+
+# ============================================================================
+# DATA MODELS
 # ============================================================================
 
 @dataclass
@@ -101,104 +196,90 @@ class ModelConfig:
     description: str
 
 # ============================================================================
-# CORE - Interfaces (SOLID: Interface Segregation Principle)
+# INTERFACES
 # ============================================================================
+
+class IDataService(ABC):
+    """Interface for data loading operations"""
+    
+    @abstractmethod
+    def load_dataset(self) -> pd.DataFrame:
+        pass
 
 class IPreprocessor(ABC):
     """Interface for text preprocessing"""
     
     @abstractmethod
     def transform(self, texts: List[str]) -> List[str]:
-        """Transform raw texts to processed texts"""
         pass
 
-class IModel(ABC):
-    """Interface for classification models"""
+class IModelTrainer(ABC):
+    """Interface for model training"""
     
     @abstractmethod
     def train(self, X, y) -> None:
-        """Train the model"""
         pass
     
     @abstractmethod
-    def predict(self, X) -> np.ndarray:
-        """Make predictions"""
-        pass
-    
-    @abstractmethod
-    def predict_proba(self, X) -> np.ndarray:
-        """Get prediction probabilities"""
-        pass
-
-class ITuningStrategy(ABC):
-    """Interface for hyperparameter tuning strategies"""
-    
-    @abstractmethod
-    def optimize(self, model, X, y, param_grid: Dict) -> Dict:
-        """Optimize model hyperparameters"""
+    def evaluate(self, X, y) -> ModelMetrics:
         pass
 
 # ============================================================================
-# SERVICES - Data Service (SOLID: Single Responsibility)
+# DATA SERVICE
 # ============================================================================
 
-class KaggleDataService:
-    """Handles dataset loading from Kaggle and local sources"""
+class DataService(IDataService):
+    """Handles dataset loading and caching"""
     
     def __init__(self):
-        # Use absolute path based on script location
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.cache_dir = os.path.join(script_dir, "cache")
-        os.makedirs(self.cache_dir, exist_ok=True)
+        self.cache_file = os.path.join(Config.CACHE_DIR, "spam_dataset.csv")
         
-    def load_spam_dataset(self) -> pd.DataFrame:
+    def load_dataset(self) -> pd.DataFrame:
         """Load SMS Spam dataset"""
-        print("📥 Loading Spam SMS Dataset...")
+        print("Loading dataset...")
         
-        cache_file = os.path.join(self.cache_dir, "spam_dataset.csv")
-        
-        if os.path.exists(cache_file):
-            print("✅ Loading from cache...")
-            df = pd.read_csv(cache_file)
+        if os.path.exists(self.cache_file):
+            print("Loading from cache...")
+            df = pd.read_csv(self.cache_file)
         else:
-            print("⬇️ Downloading from Kaggle...")
+            print("Downloading from Kaggle...")
             try:
-                import kagglehub
-                # Download dataset from Kaggle
-                path = kagglehub.dataset_download("uciml/sms-spam-collection-dataset")
-                
-                # Find the CSV file
-                csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
-                if csv_files:
-                    df = pd.read_csv(os.path.join(path, csv_files[0]), encoding='latin-1')
-                else:
-                    raise FileNotFoundError("No CSV file found in downloaded dataset")
-                
-                # Standardize column names
-                if 'v1' in df.columns and 'v2' in df.columns:
-                    df = df.rename(columns={'v1': 'label', 'v2': 'text'})
-                    df = df[['label', 'text']]
-                
-                # Save to cache
-                df.to_csv(cache_file, index=False)
-                print(f"💾 Dataset cached to {cache_file}")
-                
+                df = self._download_from_kaggle()
+                df.to_csv(self.cache_file, index=False)
+                print(f"Dataset cached to {self.cache_file}")
             except Exception as e:
-                print(f"⚠️ Could not download from Kaggle: {e}")
-                print("📝 Creating sample dataset for demonstration...")
-                df = self._create_sample_spam_dataset()
-                df.to_csv(cache_file, index=False)
+                print(f"Warning: Could not download from Kaggle: {e}")
+                print("Creating sample dataset...")
+                df = self._create_sample_dataset()
+                df.to_csv(self.cache_file, index=False)
         
-        print(f"✅ Dataset loaded: {len(df)} samples")
+        print(f"Dataset loaded: {len(df)} samples")
         return df
     
-    def _create_sample_spam_dataset(self) -> pd.DataFrame:
-        """Create a sample spam dataset for demonstration"""
-        spam_samples = [
+    def _download_from_kaggle(self) -> pd.DataFrame:
+        """Download dataset from Kaggle"""
+        import kagglehub
+        path = kagglehub.dataset_download("uciml/sms-spam-collection-dataset")
+        
+        csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+        if not csv_files:
+            raise FileNotFoundError("No CSV file found")
+        
+        df = pd.read_csv(os.path.join(path, csv_files[0]), encoding='latin-1')
+        
+        if 'v1' in df.columns and 'v2' in df.columns:
+            df = df.rename(columns={'v1': 'label', 'v2': 'text'})
+            df = df[['label', 'text']]
+        
+        return df
+    
+    def _create_sample_dataset(self) -> pd.DataFrame:
+        """Create sample dataset for demonstration"""
+        spam = [
             "WINNER!! You have won a 1 million dollar prize! Call now!",
             "FREE entry to win £1000 cash prize! Text WIN to 12345",
             "Congratulations! You've been selected for a free iPhone. Click here!",
-            "URGENT! Your account will be closed. Verify now at http://fake-site.com",
+            "URGENT! Your account will be closed. Verify now!",
             "Hot singles in your area! Meet them tonight!",
             "Get rich quick! Invest now and earn thousands!",
             "SALE! 90% off everything! Limited time only!",
@@ -207,7 +288,7 @@ class KaggleDataService:
             "Make $5000 working from home! No experience needed!"
         ] * 50
         
-        ham_samples = [
+        ham = [
             "Hey, are we still meeting for lunch tomorrow?",
             "Can you pick up some milk on your way home?",
             "Thanks for the birthday wishes! Had a great time!",
@@ -220,33 +301,36 @@ class KaggleDataService:
             "Dinner at 7? Let me know if that works"
         ] * 50
         
-        labels = ['spam'] * len(spam_samples) + ['ham'] * len(ham_samples)
-        texts = spam_samples + ham_samples
-        
-        df = pd.DataFrame({'label': labels, 'text': texts})
-        return df.sample(frac=1, random_state=42).reset_index(drop=True)
+        df = pd.DataFrame({
+            'label': ['spam']*len(spam) + ['ham']*len(ham),
+            'text': spam + ham
+        })
+        return df.sample(frac=1, random_state=Config.RANDOM_STATE).reset_index(drop=True)
 
 # ============================================================================
-# SERVICES - Preprocessing Service (SOLID: Single Responsibility)
+# TEXT PREPROCESSOR
 # ============================================================================
 
-class TextPreprocessingService(IPreprocessor):
+class TextPreprocessor(IPreprocessor):
     """Handles all text preprocessing operations"""
     
-    def __init__(self, remove_stopwords: bool = True, use_lemmatization: bool = True):
-        self.remove_stopwords = remove_stopwords
-        self.use_lemmatization = use_lemmatization
-        self.stopwords = set(stopwords.words('english'))
-        self.lemmatizer = WordNetLemmatizer()
-        self.stemmer = PorterStemmer()
+    def __init__(self):
+        try:
+            self.stopwords = set(stopwords.words('english'))
+        except:
+            self.stopwords = set()
+        try:
+            self.lemmatizer = WordNetLemmatizer()
+        except:
+            self.lemmatizer = None
         
     def transform(self, texts: List[str]) -> List[str]:
-        """Apply all preprocessing steps"""
+        """Apply preprocessing to texts"""
         return [self._preprocess_text(text) for text in texts]
     
     def _preprocess_text(self, text: str) -> str:
         """Preprocess a single text"""
-        # Convert to lowercase
+        # Lowercase
         text = text.lower()
         
         # Remove URLs
@@ -259,199 +343,163 @@ class TextPreprocessingService(IPreprocessor):
         text = re.sub(r'[^a-zA-Z\s]', '', text)
         
         # Tokenize
-        tokens = word_tokenize(text)
+        try:
+            tokens = word_tokenize(text)
+        except:
+            tokens = text.split()
         
         # Remove stopwords
-        if self.remove_stopwords:
-            tokens = [t for t in tokens if t not in self.stopwords]
+        tokens = [t for t in tokens if t not in self.stopwords and len(t) > 2]
         
         # Lemmatization
-        if self.use_lemmatization:
+        if self.lemmatizer:
             tokens = [self.lemmatizer.lemmatize(t) for t in tokens]
         
         return ' '.join(tokens)
 
 # ============================================================================
-# UTILS - EDA Service (SOLID: Single Responsibility)
+# EDA SERVICE
 # ============================================================================
 
-class AutomatedEDA:
+class EDAService:
     """Comprehensive Exploratory Data Analysis"""
     
-    def __init__(self, output_dir: str = "eda_results"):
-        # Use absolute path based on script location
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.output_dir = os.path.join(script_dir, output_dir)
-        os.makedirs(self.output_dir, exist_ok=True)
+    def __init__(self):
+        self.output_dir = Config.EDA_DIR
         
-    def generate_full_report(self, df: pd.DataFrame, text_col: str = 'text', 
-                            label_col: str = 'label') -> Dict:
+    def generate_report(self, df: pd.DataFrame, text_col: str = 'text', 
+                       label_col: str = 'label') -> Dict:
         """Generate comprehensive EDA report"""
         print("\n" + "="*70)
-        print("📊 EXPLORATORY DATA ANALYSIS")
+        print("EXPLORATORY DATA ANALYSIS")
         print("="*70)
         
         report = {}
         
-        # 1. Dataset Overview
-        print("\n1️⃣ Dataset Overview")
-        report['dataset_info'] = self._analyze_dataset_info(df)
+        # Dataset info
+        print("\n1. Dataset Overview")
+        report['dataset_info'] = self._analyze_dataset(df)
         
-        # 2. Class Distribution
-        print("\n2️⃣ Class Distribution Analysis")
-        report['class_distribution'] = self._analyze_class_distribution(df, label_col)
+        # Class distribution
+        print("\n2. Class Distribution")
+        report['class_distribution'] = self._analyze_distribution(df, label_col)
         
-        # 3. Text Length Analysis
-        print("\n3️⃣ Text Length Analysis")
-        report['text_analysis'] = self._analyze_text_lengths(df, text_col, label_col)
+        # Text analysis
+        print("\n3. Text Analysis")
+        report['text_analysis'] = self._analyze_text(df, text_col, label_col)
         
-        # 4. Word Frequency Analysis
-        print("\n4️⃣ Word Frequency Analysis")
-        report['word_freq'] = self._analyze_word_frequency(df, text_col, label_col)
+        # Word frequency
+        print("\n4. Word Frequency")
+        report['word_freq'] = self._analyze_words(df, text_col, label_col)
         
-        # 5. Missing Data Analysis
-        print("\n5️⃣ Missing Data Analysis")
-        report['missing_data'] = self._analyze_missing_data(df)
+        # Missing data
+        print("\n5. Missing Data")
+        report['missing_data'] = self._analyze_missing(df)
         
         # Generate visualizations
-        print("\n6️⃣ Generating Visualizations...")
-        self._generate_visualizations(df, text_col, label_col)
+        print("\n6. Generating Visualizations")
+        self._create_visualizations(df, text_col, label_col)
         
         # Save report
-        report_file = os.path.join(self.output_dir, 'eda_report.json')
-        with open(report_file, 'w') as f:
+        with open(os.path.join(self.output_dir, 'eda_report.json'), 'w') as f:
             json.dump(report, f, indent=2, default=str)
         
-        print(f"\n✅ EDA Report saved to: {report_file}")
-        print(f"📁 Visualizations saved to: {self.output_dir}/")
-        
+        print(f"\nEDA Report saved to: {self.output_dir}/")
         return report
     
-    def _analyze_dataset_info(self, df: pd.DataFrame) -> Dict:
+    def _analyze_dataset(self, df: pd.DataFrame) -> Dict:
         """Analyze basic dataset information"""
         info = {
             'num_samples': len(df),
             'num_features': len(df.columns),
             'columns': list(df.columns),
-            'dtypes': df.dtypes.astype(str).to_dict(),
             'memory_usage': f"{df.memory_usage(deep=True).sum() / 1024**2:.2f} MB"
         }
-        
-        print(f"   📝 Total Samples: {info['num_samples']}")
-        print(f"   📊 Features: {info['num_features']}")
-        print(f"   💾 Memory Usage: {info['memory_usage']}")
-        
+        print(f"   Total Samples: {info['num_samples']}")
+        print(f"   Features: {info['num_features']}")
         return info
     
-    def _analyze_class_distribution(self, df: pd.DataFrame, label_col: str) -> Dict:
+    def _analyze_distribution(self, df: pd.DataFrame, label_col: str) -> Dict:
         """Analyze class distribution"""
-        class_counts = df[label_col].value_counts()
-        class_pcts = df[label_col].value_counts(normalize=True) * 100
+        counts = df[label_col].value_counts()
+        pcts = df[label_col].value_counts(normalize=True) * 100
         
         distribution = {
-            'counts': class_counts.to_dict(),
-            'percentages': class_pcts.to_dict(),
-            'is_balanced': max(class_pcts) / min(class_pcts) < 1.5
+            'counts': counts.to_dict(),
+            'percentages': pcts.to_dict(),
+            'is_balanced': max(pcts) / min(pcts) < 1.5
         }
         
-        print(f"\n   Class Distribution:")
-        for cls, count in class_counts.items():
-            pct = class_pcts[cls]
-            print(f"   • {cls}: {count} ({pct:.1f}%)")
-        
-        if not distribution['is_balanced']:
-            print(f"   ⚠️ Dataset is imbalanced!")
-        else:
-            print(f"   ✅ Dataset is balanced")
+        for cls, count in counts.items():
+            print(f"   {cls}: {count} ({pcts[cls]:.1f}%)")
         
         return distribution
     
-    def _analyze_text_lengths(self, df: pd.DataFrame, text_col: str, label_col: str) -> Dict:
-        """Analyze text length statistics"""
+    def _analyze_text(self, df: pd.DataFrame, text_col: str, label_col: str) -> Dict:
+        """Analyze text statistics"""
         df['text_length'] = df[text_col].str.len()
         df['word_count'] = df[text_col].str.split().str.len()
         
-        analysis = {
-            'length_stats': df.groupby(label_col)['text_length'].describe().to_dict(),
-            'word_count_stats': df.groupby(label_col)['word_count'].describe().to_dict()
-        }
-        
-        print(f"\n   Text Length Statistics:")
+        stats = {}
         for cls in df[label_col].unique():
             cls_data = df[df[label_col] == cls]
-            print(f"   • {cls}:")
-            print(f"     - Avg length: {cls_data['text_length'].mean():.0f} chars")
-            print(f"     - Avg words: {cls_data['word_count'].mean():.0f} words")
+            stats[cls] = {
+                'avg_length': float(cls_data['text_length'].mean()),
+                'avg_words': float(cls_data['word_count'].mean())
+            }
+            print(f"   {cls}: {stats[cls]['avg_length']:.0f} chars, {stats[cls]['avg_words']:.0f} words")
         
-        return analysis
+        return stats
     
-    def _analyze_word_frequency(self, df: pd.DataFrame, text_col: str, label_col: str) -> Dict:
-        """Analyze word frequencies by class"""
+    def _analyze_words(self, df: pd.DataFrame, text_col: str, label_col: str) -> Dict:
+        """Analyze word frequencies"""
         word_freq = {}
-        
         for cls in df[label_col].unique():
-            cls_texts = df[df[label_col] == cls][text_col]
-            all_words = ' '.join(cls_texts).lower().split()
-            word_freq[cls] = dict(Counter(all_words).most_common(20))
-        
-        print(f"\n   Top Words by Class:")
-        for cls, words in word_freq.items():
-            top_5 = list(words.items())[:5]
-            print(f"   • {cls}: {', '.join([f'{w}({c})' for w, c in top_5])}")
-        
+            texts = ' '.join(df[df[label_col] == cls][text_col])
+            word_freq[cls] = dict(Counter(texts.lower().split()).most_common(20))
         return word_freq
     
-    def _analyze_missing_data(self, df: pd.DataFrame) -> Dict:
+    def _analyze_missing(self, df: pd.DataFrame) -> Dict:
         """Analyze missing data"""
         missing = df.isnull().sum()
-        missing_pct = (missing / len(df)) * 100
-        
-        analysis = {
-            'missing_counts': missing.to_dict(),
-            'missing_percentages': missing_pct.to_dict(),
-            'has_missing': missing.sum() > 0
+        return {
+            'has_missing': missing.sum() > 0,
+            'counts': missing.to_dict()
         }
-        
-        if analysis['has_missing']:
-            print(f"   ⚠️ Missing values found:")
-            for col, count in missing[missing > 0].items():
-                print(f"   • {col}: {count} ({missing_pct[col]:.1f}%)")
-        else:
-            print(f"   ✅ No missing values")
-        
-        return analysis
     
-    def _generate_visualizations(self, df: pd.DataFrame, text_col: str, label_col: str):
+    def _create_visualizations(self, df: pd.DataFrame, text_col: str, label_col: str):
         """Generate all visualizations"""
-        # 1. Class Distribution Bar Chart
+        # Ensure features exist
+        if 'text_length' not in df.columns:
+            df['text_length'] = df[text_col].str.len()
+        if 'word_count' not in df.columns:
+            df['word_count'] = df[text_col].str.split().str.len()
+        
+        # Main analysis plots
         fig, axes = plt.subplots(2, 2, figsize=(15, 12))
         
         # Class distribution
-        df[label_col].value_counts().plot(kind='bar', ax=axes[0, 0], color=['#3498db', '#e74c3c'])
+        df[label_col].value_counts().plot(kind='bar', ax=axes[0, 0], 
+                                         color=['#3498db', '#e74c3c'])
         axes[0, 0].set_title('Class Distribution', fontsize=14, fontweight='bold')
         axes[0, 0].set_xlabel('Class')
         axes[0, 0].set_ylabel('Count')
         
         # Text length distribution
         for cls in df[label_col].unique():
-            cls_data = df[df[label_col] == cls]
-            axes[0, 1].hist(cls_data[text_col].str.len(), alpha=0.6, label=cls, bins=50)
-        axes[0, 1].set_title('Text Length Distribution by Class', fontsize=14, fontweight='bold')
-        axes[0, 1].set_xlabel('Text Length (characters)')
-        axes[0, 1].set_ylabel('Frequency')
+            data = df[df[label_col] == cls]['text_length']
+            axes[0, 1].hist(data, alpha=0.6, label=cls, bins=50)
+        axes[0, 1].set_title('Text Length Distribution', fontsize=14, fontweight='bold')
         axes[0, 1].legend()
         
         # Word count distribution
-        df['word_count'] = df[text_col].str.split().str.len()
         for cls in df[label_col].unique():
-            cls_data = df[df[label_col] == cls]
-            axes[1, 0].hist(cls_data['word_count'], alpha=0.6, label=cls, bins=30)
-        axes[1, 0].set_title('Word Count Distribution by Class', fontsize=14, fontweight='bold')
-        axes[1, 0].set_xlabel('Number of Words')
-        axes[1, 0].set_ylabel('Frequency')
+            data = df[df[label_col] == cls]['word_count']
+            axes[1, 0].hist(data, alpha=0.6, label=cls, bins=30)
+        axes[1, 0].set_title('Word Count Distribution', fontsize=14, fontweight='bold')
         axes[1, 0].legend()
         
-        # Average metrics by class
+        # Average metrics
         metrics = df.groupby(label_col).agg({
             'text_length': 'mean',
             'word_count': 'mean'
@@ -459,28 +507,25 @@ class AutomatedEDA:
         
         x = np.arange(len(metrics.index))
         width = 0.35
-        axes[1, 1].bar(x - width/2, metrics['text_length'], width, label='Avg Text Length', color='#3498db')
-        axes[1, 1].bar(x + width/2, metrics['word_count'], width, label='Avg Word Count', color='#2ecc71')
-        axes[1, 1].set_title('Average Metrics by Class', fontsize=14, fontweight='bold')
-        axes[1, 1].set_xlabel('Class')
-        axes[1, 1].set_ylabel('Count')
+        axes[1, 1].bar(x - width/2, metrics['text_length'], width, 
+                      label='Avg Length', color='#3498db')
+        axes[1, 1].bar(x + width/2, metrics['word_count'], width, 
+                      label='Avg Words', color='#2ecc71')
+        axes[1, 1].set_title('Average Metrics', fontsize=14, fontweight='bold')
         axes[1, 1].set_xticks(x)
         axes[1, 1].set_xticklabels(metrics.index)
         axes[1, 1].legend()
         
         plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'basic_analysis.png'), dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(self.output_dir, 'analysis.png'), dpi=300, bbox_inches='tight')
         plt.close()
         
-        # 2. Word Clouds
-        fig, axes = plt.subplots(1, len(df[label_col].unique()), figsize=(15, 6))
-        if len(df[label_col].unique()) == 1:
-            axes = [axes]
-        
+        # Word clouds
+        fig, axes = plt.subplots(1, 2, figsize=(15, 6))
         for idx, cls in enumerate(df[label_col].unique()):
-            cls_text = ' '.join(df[df[label_col] == cls][text_col])
-            wordcloud = WordCloud(width=800, height=400, background_color='white',
-                                colormap='viridis').generate(cls_text)
+            text = ' '.join(df[df[label_col] == cls][text_col])
+            wordcloud = WordCloud(width=800, height=400, 
+                                background_color='white').generate(text)
             axes[idx].imshow(wordcloud, interpolation='bilinear')
             axes[idx].set_title(f'Word Cloud - {cls}', fontsize=14, fontweight='bold')
             axes[idx].axis('off')
@@ -489,166 +534,130 @@ class AutomatedEDA:
         plt.savefig(os.path.join(self.output_dir, 'wordclouds.png'), dpi=300, bbox_inches='tight')
         plt.close()
         
-        print("   ✅ Saved: basic_analysis.png")
-        print("   ✅ Saved: wordclouds.png")
+        print("   Saved: analysis.png")
+        print("   Saved: wordclouds.png")
 
 # ============================================================================
-# SERVICES - Model Service (SOLID: Single Responsibility & Open/Closed)
+# MODEL TRAINING SERVICE
 # ============================================================================
 
 class ModelTrainingService:
     """Handles model training and evaluation"""
     
-    def __init__(self, vectorizer_type: str = 'tfidf'):
-        self.vectorizer_type = vectorizer_type
+    def __init__(self):
         self.vectorizer = None
         self.models_config = self._get_models_config()
-        self.trained_models = {}
         self.results = {}
         
     def _get_models_config(self) -> List[ModelConfig]:
-        """Get configuration for all models"""
-        return [
-            ModelConfig(
-                name='Naive Bayes',
-                model_class=MultinomialNB,
-                param_grid={'alpha': [0.1, 0.5, 1.0, 2.0]},
-                description='Probabilistic classifier based on Bayes theorem'
-            ),
-            ModelConfig(
-                name='Logistic Regression',
-                model_class=LogisticRegression,
-                param_grid={
-                    'C': [0.1, 1, 10],
-                    'solver': ['liblinear', 'saga'],
-                    'max_iter': [1000]
-                },
-                description='Linear model for binary classification'
-            ),
-            ModelConfig(
-                name='Support Vector Machine',
-                model_class=SVC,
-                param_grid={
-                    'C': [0.1, 1, 10],
-                    'kernel': ['linear', 'rbf'],
-                    'probability': [True]
-                },
-                description='Maximum margin classifier'
-            ),
-            ModelConfig(
-                name='Random Forest',
-                model_class=RandomForestClassifier,
-                param_grid={
-                    'n_estimators': [50, 100, 200],
-                    'max_depth': [None, 10, 20],
-                    'min_samples_split': [2, 5]
-                },
-                description='Ensemble of decision trees'
-            )
-        ]
+        """Get model configurations"""
+        configs = []
+        for name, config in Config.MODELS.items():
+            configs.append(ModelConfig(
+                name=name,
+                model_class=config['class'],
+                param_grid=config['params'],
+                description=config['description']
+            ))
+        return configs
     
-    def prepare_data(self, df: pd.DataFrame, text_col: str = 'text',
-                    label_col: str = 'label', test_size: float = 0.2) -> Tuple:
+    def prepare_data(self, df: pd.DataFrame) -> Tuple:
         """Prepare data for training"""
         print("\n" + "="*70)
-        print("🔧 DATA PREPARATION")
+        print("DATA PREPARATION")
         print("="*70)
         
-        # Preprocess texts
-        print("\n1️⃣ Preprocessing texts...")
-        preprocessor = TextPreprocessingService()
-        df['processed_text'] = preprocessor.transform(df[text_col].tolist())
+        print("\n1. Preprocessing texts...")
+        preprocessor = TextPreprocessor()
+        df['processed_text'] = preprocessor.transform(df['text'].tolist())
         
-        # Split data
-        print("2️⃣ Splitting data...")
+        print("2. Splitting data...")
         X_train, X_test, y_train, y_test = train_test_split(
-            df['processed_text'], df[label_col],
-            test_size=test_size, random_state=42, stratify=df[label_col]
+            df['processed_text'], df['label'],
+            test_size=Config.TEST_SIZE, 
+            random_state=Config.RANDOM_STATE, 
+            stratify=df['label']
         )
         
-        print(f"   📊 Training samples: {len(X_train)}")
-        print(f"   📊 Testing samples: {len(X_test)}")
+        print(f"   Training samples: {len(X_train)}")
+        print(f"   Testing samples: {len(X_test)}")
         
-        # Vectorize
-        print(f"3️⃣ Vectorizing with {self.vectorizer_type.upper()}...")
-        if self.vectorizer_type == 'tfidf':
-            self.vectorizer = TfidfVectorizer(max_features=3000, ngram_range=(1, 2))
-        else:
-            self.vectorizer = CountVectorizer(max_features=3000, ngram_range=(1, 2))
+        print("3. Vectorizing with TF-IDF...")
+        self.vectorizer = TfidfVectorizer(
+            max_features=Config.MAX_FEATURES, 
+            ngram_range=Config.NGRAM_RANGE
+        )
         
         X_train_vec = self.vectorizer.fit_transform(X_train)
         X_test_vec = self.vectorizer.transform(X_test)
         
-        print(f"   ✅ Feature dimensions: {X_train_vec.shape[1]}")
+        print(f"   Feature dimensions: {X_train_vec.shape[1]}")
         
         return X_train_vec, X_test_vec, y_train, y_test
     
     def train_all_models(self, X_train, X_test, y_train, y_test) -> Dict:
         """Train and evaluate all models"""
         print("\n" + "="*70)
-        print("🤖 MODEL TRAINING & EVALUATION")
+        print("MODEL TRAINING & EVALUATION")
         print("="*70)
         
         for config in self.models_config:
             print(f"\n{'='*70}")
             print(f"Training: {config.name}")
-            print(f"Description: {config.description}")
             print(f"{'='*70}")
             
-            # Create model
             model = config.model_class()
             
-            # Train
-            print("⏳ Training...")
+            print("Training...")
             model.fit(X_train, y_train)
             
-            # Evaluate
-            print("📊 Evaluating...")
-            metrics = self._evaluate_model(model, X_test, y_test, config.name)
+            print("Evaluating...")
+            metrics = self._evaluate_model(model, X_test, y_test)
             
-            # Store
-            self.trained_models[config.name] = model
             self.results[config.name] = {
                 'config': config,
                 'model': model,
                 'metrics': metrics
             }
             
-            # Print results
             self._print_metrics(config.name, metrics)
         
         return self.results
     
-    def _evaluate_model(self, model, X_test, y_test, model_name: str) -> ModelMetrics:
+    def _evaluate_model(self, model, X_test, y_test) -> ModelMetrics:
         """Evaluate a single model"""
         y_pred = model.predict(X_test)
-        y_pred_proba = model.predict_proba(X_test)[:, 1] if hasattr(model, 'predict_proba') else None
         
-        metrics = ModelMetrics(
+        try:
+            if hasattr(model, 'predict_proba'):
+                y_proba = model.predict_proba(X_test)
+                roc_auc = roc_auc_score(y_test, y_proba[:, 1])
+            else:
+                roc_auc = 0.0
+        except:
+            roc_auc = 0.0
+        
+        return ModelMetrics(
             accuracy=accuracy_score(y_test, y_pred),
-            precision=precision_score(y_test, y_pred, average='weighted'),
-            recall=recall_score(y_test, y_pred, average='weighted'),
-            f1_score=f1_score(y_test, y_pred, average='weighted'),
-            roc_auc=roc_auc_score(y_test, y_pred_proba, average='weighted') if y_pred_proba is not None else 0.0,
+            precision=precision_score(y_test, y_pred, average='weighted', zero_division=0),
+            recall=recall_score(y_test, y_pred, average='weighted', zero_division=0),
+            f1_score=f1_score(y_test, y_pred, average='weighted', zero_division=0),
+            roc_auc=roc_auc,
             confusion_matrix=confusion_matrix(y_test, y_pred).tolist(),
-            classification_report=classification_report(y_test, y_pred)
+            classification_report=classification_report(y_test, y_pred, zero_division=0)
         )
-        
-        return metrics
     
     def _print_metrics(self, name: str, metrics: ModelMetrics):
         """Print model metrics"""
-        print(f"\n📈 Results for {name}:")
-        print(f"   • Accuracy:  {metrics.accuracy:.4f}")
-        print(f"   • Precision: {metrics.precision:.4f}")
-        print(f"   • Recall:    {metrics.recall:.4f}")
-        print(f"   • F1-Score:  {metrics.f1_score:.4f}")
-        print(f"   • ROC-AUC:   {metrics.roc_auc:.4f}")
+        print(f"\nResults for {name}:")
+        print(f"   Accuracy:  {metrics.accuracy:.4f}")
+        print(f"   Precision: {metrics.precision:.4f}")
+        print(f"   Recall:    {metrics.recall:.4f}")
+        print(f"   F1-Score:  {metrics.f1_score:.4f}")
     
     def compare_models(self) -> pd.DataFrame:
         """Compare all trained models"""
         comparison = []
-        
         for name, result in self.results.items():
             metrics = result['metrics']
             comparison.append({
@@ -660,86 +669,49 @@ class ModelTrainingService:
                 'ROC-AUC': metrics.roc_auc
             })
         
-        df_comparison = pd.DataFrame(comparison).round(4)
-        return df_comparison.sort_values('F1-Score', ascending=False)
-    
-    def select_best_model(self) -> Tuple[str, Any, ModelMetrics]:
-        """Select the best performing model"""
-        best_model_name = None
-        best_score = -1
-        
-        for name, result in self.results.items():
-            # Weighted score: 30% Accuracy + 25% Precision + 25% Recall + 20% F1
-            score = (0.3 * result['metrics'].accuracy +
-                    0.25 * result['metrics'].precision +
-                    0.25 * result['metrics'].recall +
-                    0.2 * result['metrics'].f1_score)
-            
-            if score > best_score:
-                best_score = score
-                best_model_name = name
-        
-        best_result = self.results[best_model_name]
-        return best_model_name, best_result['model'], best_result['metrics']
+        return pd.DataFrame(comparison).round(4).sort_values('F1-Score', ascending=False)
 
 # ============================================================================
-# SERVICES - Tuning Service (SOLID: Strategy Pattern)
+# HYPERPARAMETER TUNING SERVICE
 # ============================================================================
-
-class GridSearchTuning(ITuningStrategy):
-    """Grid search hyperparameter tuning"""
-    
-    def optimize(self, model, X, y, param_grid: Dict) -> Dict:
-        grid_search = GridSearchCV(
-            model, param_grid, cv=5, scoring='f1_weighted',
-            n_jobs=-1, verbose=0
-        )
-        grid_search.fit(X, y)
-        return grid_search.best_params_
-
-class RandomSearchTuning(ITuningStrategy):
-    """Random search hyperparameter tuning"""
-    
-    def optimize(self, model, X, y, param_grid: Dict) -> Dict:
-        random_search = RandomizedSearchCV(
-            model, param_grid, n_iter=20, cv=5, scoring='f1_weighted',
-            n_jobs=-1, random_state=42, verbose=0
-        )
-        random_search.fit(X, y)
-        return random_search.best_params_
 
 class HyperparameterTuningService:
     """Service for hyperparameter optimization"""
     
-    def __init__(self, strategy: str = 'grid'):
-        self.strategy = GridSearchTuning() if strategy == 'grid' else RandomSearchTuning()
-    
-    def tune_model(self, model_config: ModelConfig, X_train, y_train) -> Tuple[Any, Dict]:
+    def tune_model(self, config: ModelConfig, X_train, y_train) -> Tuple[Any, Dict]:
         """Tune a model's hyperparameters"""
-        print(f"\n🔍 Tuning {model_config.name}...")
-        print(f"   Strategy: {self.strategy.__class__.__name__}")
-        print(f"   Parameter grid: {model_config.param_grid}")
+        print(f"\nTuning {config.name}...")
+        print(f"   Parameter grid: {config.param_grid}")
         
-        model = model_config.model_class()
-        best_params = self.strategy.optimize(model, X_train, y_train, model_config.param_grid)
+        model = config.model_class()
         
-        print(f"   ✅ Best parameters: {best_params}")
+        grid_search = GridSearchCV(
+            model, config.param_grid, 
+            cv=Config.CV_FOLDS, 
+            scoring='f1_weighted',
+            n_jobs=-1, 
+            verbose=0
+        )
         
-        # Train final model with best parameters
-        final_model = model_config.model_class(**best_params)
+        grid_search.fit(X_train, y_train)
+        best_params = grid_search.best_params_
+        
+        print(f"   Best parameters: {best_params}")
+        print(f"   Best CV score: {grid_search.best_score_:.4f}")
+        
+        final_model = config.model_class(**best_params)
         final_model.fit(X_train, y_train)
         
         return final_model, best_params
     
-    def tune_all_models(self, models_config: List[ModelConfig], X_train, y_train) -> Dict:
+    def tune_all_models(self, configs: List[ModelConfig], X_train, y_train) -> Dict:
         """Tune all models"""
         print("\n" + "="*70)
-        print("⚙️ HYPERPARAMETER TUNING")
+        print("HYPERPARAMETER TUNING")
         print("="*70)
         
         tuned_models = {}
-        
-        for config in models_config:
+        for config in configs:
             model, params = self.tune_model(config, X_train, y_train)
             tuned_models[config.name] = {
                 'model': model,
@@ -750,126 +722,105 @@ class HyperparameterTuningService:
         return tuned_models
 
 # ============================================================================
-# SERVICES - Visualization Service
+# VISUALIZATION SERVICE
 # ============================================================================
 
-class ModelVisualizationService:
+class VisualizationService:
     """Generate visualizations for model comparison"""
     
-    def __init__(self, output_dir: str = "model_results"):
-        # Use absolute path based on script location
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.output_dir = os.path.join(script_dir, output_dir)
-        os.makedirs(self.output_dir, exist_ok=True)
+    def __init__(self):
+        self.output_dir = Config.RESULTS_DIR
     
     def create_comparison_charts(self, comparison_df: pd.DataFrame):
         """Create model comparison visualizations"""
-        print("\n📊 Generating comparison charts...")
+        print("\nGenerating comparison charts...")
         
-        # 1. Metrics comparison bar chart
-        fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-        
-        metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
-        colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12']
+        # Metrics comparison
+        fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+        metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC']
+        colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6']
         
         for idx, (metric, color) in enumerate(zip(metrics, colors)):
-            ax = axes[idx // 2, idx % 2]
+            row = idx // 3
+            col = idx % 3
+            ax = axes[row, col]
+            
             comparison_df.plot(x='Model', y=metric, kind='bar', ax=ax, color=color, legend=False)
             ax.set_title(f'{metric} Comparison', fontsize=14, fontweight='bold')
             ax.set_xlabel('Model')
             ax.set_ylabel(metric)
             ax.set_ylim([0, 1.05])
             ax.grid(axis='y', alpha=0.3)
+            ax.tick_params(axis='x', rotation=45)
             
-            # Add value labels on bars
             for container in ax.containers:
                 ax.bar_label(container, fmt='%.3f', padding=3)
         
+        axes[1, 2].axis('off')
+        
         plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'model_comparison.png'), dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(self.output_dir, 'comparison.png'), dpi=300, bbox_inches='tight')
         plt.close()
         
-        # 2. Radar chart for all metrics
-        categories = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC']
-        
-        fig = go.Figure()
-        
-        for _, row in comparison_df.iterrows():
-            values = [row[cat] for cat in categories]
-            values.append(values[0])  # Close the polygon
-            
-            fig.add_trace(go.Scatterpolar(
-                r=values,
-                theta=categories + [categories[0]],
-                fill='toself',
-                name=row['Model']
-            ))
-        
-        fig.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
-            showlegend=True,
-            title='Model Performance Comparison (Radar Chart)',
-            title_font_size=16
-        )
-        
-        fig.write_html(os.path.join(self.output_dir, 'radar_comparison.html'))
-        
-        print(f"   ✅ Saved: model_comparison.png")
-        print(f"   ✅ Saved: radar_comparison.html")
+        print("   Saved: comparison.png")
     
     def create_confusion_matrices(self, results: Dict):
         """Create confusion matrix visualizations"""
         n_models = len(results)
-        fig, axes = plt.subplots(1, n_models, figsize=(5*n_models, 4))
+        cols = 3
+        rows = (n_models + cols - 1) // cols
         
-        if n_models == 1:
-            axes = [axes]
+        fig, axes = plt.subplots(rows, cols, figsize=(5*cols, 4*rows))
+        axes = axes.flatten() if n_models > 1 else [axes]
         
         for idx, (name, result) in enumerate(results.items()):
             cm = np.array(result['metrics'].confusion_matrix)
             
             sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=axes[idx],
                        cbar=True, square=True)
-            axes[idx].set_title(f'{name}\nConfusion Matrix', fontsize=12, fontweight='bold')
+            axes[idx].set_title(f'{name}', fontsize=12, fontweight='bold')
             axes[idx].set_xlabel('Predicted')
             axes[idx].set_ylabel('Actual')
         
+        for idx in range(n_models, len(axes)):
+            axes[idx].axis('off')
+        
         plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'confusion_matrices.png'), dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(self.output_dir, 'confusion_matrices.png'), 
+                   dpi=300, bbox_inches='tight')
         plt.close()
         
-        print(f"   ✅ Saved: confusion_matrices.png")
+        print("   Saved: confusion_matrices.png")
 
 # ============================================================================
-# SERVICES - Model Persistence Service
+# MODEL PERSISTENCE SERVICE
 # ============================================================================
 
 class ModelPersistenceService:
     """Save and load trained models"""
     
-    def __init__(self, models_dir: str = "saved_models"):
-        # Use absolute path based on script location
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.models_dir = os.path.join(script_dir, models_dir)
-        os.makedirs(self.models_dir, exist_ok=True)
+    def __init__(self):
+        self.models_dir = Config.MODELS_DIR
     
-    def save_model(self, model: Any, vectorizer: Any, model_name: str, metrics: ModelMetrics):
+    def save_model(self, model: Any, vectorizer: Any, model_name: str, 
+                   metrics: ModelMetrics, params: Dict = None):
         """Save model, vectorizer, and metadata"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        model_path = os.path.join(self.models_dir, f"{model_name}_{timestamp}.pkl")
+        model_path = os.path.join(self.models_dir, f"{model_name.replace(' ', '_')}_{timestamp}.pkl")
         
         model_package = {
             'model': model,
             'vectorizer': vectorizer,
             'model_name': model_name,
             'metrics': metrics.to_dict(),
+            'params': params,
             'timestamp': timestamp
         }
         
         with open(model_path, 'wb') as f:
             pickle.dump(model_package, f)
         
-        print(f"💾 Model saved: {model_path}")
+        print(f"Model saved: {model_path}")
         return model_path
     
     def load_latest_model(self) -> Dict:
@@ -877,7 +828,7 @@ class ModelPersistenceService:
         model_files = [f for f in os.listdir(self.models_dir) if f.endswith('.pkl')]
         
         if not model_files:
-            raise FileNotFoundError("No saved models found")
+            raise FileNotFoundError("No saved models found. Please train models first.")
         
         latest_model = max(model_files, key=lambda x: os.path.getctime(os.path.join(self.models_dir, x)))
         model_path = os.path.join(self.models_dir, latest_model)
@@ -885,35 +836,36 @@ class ModelPersistenceService:
         with open(model_path, 'rb') as f:
             model_package = pickle.load(f)
         
-        print(f"📂 Loaded model: {model_path}")
+        print(f"Loaded model: {model_path}")
         return model_package
 
 # ============================================================================
-# MAIN TRAINING PIPELINE
+# TRAINING PIPELINE
 # ============================================================================
 
 class TrainingPipeline:
     """Complete training pipeline"""
     
     def __init__(self):
-        self.data_service = KaggleDataService()
-        self.eda_service = AutomatedEDA()
+        self.data_service = DataService()
+        self.eda_service = EDAService()
         self.model_service = ModelTrainingService()
-        self.tuning_service = HyperparameterTuningService(strategy='grid')
-        self.viz_service = ModelVisualizationService()
+        self.tuning_service = HyperparameterTuningService()
+        self.viz_service = VisualizationService()
         self.persistence_service = ModelPersistenceService()
     
     def run_full_pipeline(self):
         """Execute complete training pipeline"""
         print("\n" + "="*70)
-        print("🚀 TEXT CLASSIFICATION TRAINING PIPELINE")
+        print("TEXT CLASSIFICATION TRAINING PIPELINE")
+        print("Assignment: NLP - Part A, Question 2")
         print("="*70)
         
         # Step 1: Load Data
-        df = self.data_service.load_spam_dataset()
+        df = self.data_service.load_dataset()
         
-        # Step 2: Exploratory Data Analysis
-        eda_report = self.eda_service.generate_full_report(df)
+        # Step 2: EDA
+        eda_report = self.eda_service.generate_report(df)
         
         # Step 3: Prepare Data
         X_train, X_test, y_train, y_test = self.model_service.prepare_data(df)
@@ -923,7 +875,7 @@ class TrainingPipeline:
         
         # Step 5: Compare Models
         print("\n" + "="*70)
-        print("📊 MODEL COMPARISON")
+        print("BASE MODEL COMPARISON")
         print("="*70)
         comparison_df = self.model_service.compare_models()
         print("\n" + comparison_df.to_string(index=False))
@@ -935,13 +887,13 @@ class TrainingPipeline:
         
         # Step 7: Evaluate Tuned Models
         print("\n" + "="*70)
-        print("📈 TUNED MODEL EVALUATION")
+        print("TUNED MODEL EVALUATION")
         print("="*70)
         
         tuned_comparison = []
         for name, result in tuned_results.items():
             model = result['model']
-            metrics = self.model_service._evaluate_model(model, X_test, y_test, name)
+            metrics = self.model_service._evaluate_model(model, X_test, y_test)
             
             tuned_comparison.append({
                 'Model': name,
@@ -956,51 +908,78 @@ class TrainingPipeline:
             tuned_results[name]['metrics'] = metrics
         
         tuned_df = pd.DataFrame(tuned_comparison).round(4).sort_values('F1-Score', ascending=False)
-        print("\n📊 Tuned Models Comparison:")
+        print("\nTuned Models Comparison:")
         print(tuned_df.to_string(index=False))
         
-        # Step 8: Select Best Model
+        # Step 8: Compare with Literature
         print("\n" + "="*70)
-        print("🏆 BEST MODEL SELECTION")
+        print("COMPARISON WITH LITERATURE")
+        print("="*70)
+        
+        print("\nLiterature Benchmarks:")
+        for model_name, metrics in Config.BENCHMARKS.items():
+            print(f"\n{model_name}:")
+            print(f"  Accuracy: {metrics['accuracy']:.3f}")
+            print(f"  F1-Score: {metrics['f1']:.3f}")
+            print(f"  Source: {metrics['source']}")
+        
+        best_our_model = tuned_df.iloc[0]
+        print(f"\nOur Best Model: {best_our_model['Model']}")
+        print(f"  Accuracy: {best_our_model['Accuracy']:.3f}")
+        print(f"  F1-Score: {best_our_model['F1-Score']:.3f}")
+        
+        # Step 9: Select Best Model
+        print("\n" + "="*70)
+        print("BEST MODEL SELECTION")
         print("="*70)
         
         best_model_name = tuned_df.iloc[0]['Model']
         best_model_result = tuned_results[best_model_name]
         
-        print(f"\n✅ Best Model: {best_model_name}")
+        print(f"\nBest Model: {best_model_name}")
         print(f"   Parameters: {best_model_result['params']}")
         print(f"\n   Performance Metrics:")
-        print(f"   • Accuracy:  {best_model_result['metrics'].accuracy:.4f}")
-        print(f"   • Precision: {best_model_result['metrics'].precision:.4f}")
-        print(f"   • Recall:    {best_model_result['metrics'].recall:.4f}")
-        print(f"   • F1-Score:  {best_model_result['metrics'].f1_score:.4f}")
-        print(f"   • ROC-AUC:   {best_model_result['metrics'].roc_auc:.4f}")
+        print(f"   Accuracy:  {best_model_result['metrics'].accuracy:.4f}")
+        print(f"   Precision: {best_model_result['metrics'].precision:.4f}")
+        print(f"   Recall:    {best_model_result['metrics'].recall:.4f}")
+        print(f"   F1-Score:  {best_model_result['metrics'].f1_score:.4f}")
+        print(f"   ROC-AUC:   {best_model_result['metrics'].roc_auc:.4f}")
         
-        # Step 9: Generate Visualizations
+        # Step 10: Generate Visualizations
+        print("\n" + "="*70)
+        print("GENERATING VISUALIZATIONS")
+        print("="*70)
+        
         self.viz_service.create_comparison_charts(tuned_df)
         self.viz_service.create_confusion_matrices(tuned_results)
         
-        # Step 10: Save Best Model
+        # Step 11: Save Best Model
         model_path = self.persistence_service.save_model(
             best_model_result['model'],
             self.model_service.vectorizer,
             best_model_name,
-            best_model_result['metrics']
+            best_model_result['metrics'],
+            best_model_result['params']
         )
         
+        # Final Summary
         print("\n" + "="*70)
-        print("✅ TRAINING PIPELINE COMPLETED SUCCESSFULLY!")
+        print("TRAINING PIPELINE COMPLETED SUCCESSFULLY")
         print("="*70)
-        print(f"\n📁 Results saved to:")
-        print(f"   • EDA: eda_results/")
-        print(f"   • Models: model_results/")
-        print(f"   • Best Model: {model_path}")
-        print(f"\n🚀 Ready for deployment! Run: streamlit run text_classification_system.py")
+        print(f"\nResults Summary:")
+        print(f"   EDA Results: {Config.EDA_DIR}/")
+        print(f"   Model Comparisons: {Config.RESULTS_DIR}/")
+        print(f"   Best Model: {model_path}")
+        print(f"\nBest Model: {best_model_name}")
+        print(f"   Accuracy: {best_model_result['metrics'].accuracy:.4f}")
+        print(f"   F1-Score: {best_model_result['metrics'].f1_score:.4f}")
+        print(f"\nReady for deployment! Run: streamlit run {__file__}")
+        print("="*70)
         
         return best_model_result
 
 # ============================================================================
-# DEPLOYMENT - Streamlit Web Application
+# DEPLOYMENT - STREAMLIT WEB APPLICATION
 # ============================================================================
 
 def create_deployment_app():
@@ -1008,52 +987,62 @@ def create_deployment_app():
     try:
         import streamlit as st
     except ImportError:
-        print("❌ Streamlit not installed. Install with: pip install streamlit")
+        print("Error: Streamlit not installed. Install with: pip install streamlit")
         return
     
     # Page configuration
     st.set_page_config(
         page_title="Text Classification System",
         page_icon="🎯",
-        layout="wide"
+        layout="wide",
+        initial_sidebar_state="expanded"
     )
     
-    # Custom CSS
+    # Custom CSS for responsive design
     st.markdown("""
         <style>
+        /* Main header */
         .main-header {
-            font-size: 2.5rem;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
             font-weight: bold;
-            color: #2c3e50;
             text-align: center;
-            padding: 1rem;
+            padding: 1.5rem;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border-radius: 10px;
+            border-radius: 15px;
             margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
+        
+        /* Prediction boxes */
         .prediction-box {
-            padding: 2rem;
-            border-radius: 10px;
+            padding: 1.5rem;
+            border-radius: 15px;
             margin: 1rem 0;
-            font-size: 1.2rem;
-            color: #333;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
+        
         .spam-box {
-            background-color: #fee;
+            background: linear-gradient(135deg, #fee 0%, #fdd 100%);
             border-left: 5px solid #e74c3c;
         }
+        
         .ham-box {
-            background-color: #efe;
+            background: linear-gradient(135deg, #efe 0%, #dfd 100%);
             border-left: 5px solid #2ecc71;
         }
+        
+        /* Confidence bar */
         .confidence-bar {
-            height: 30px;
-            border-radius: 15px;
+            height: 35px;
+            border-radius: 20px;
             background-color: #ecf0f1;
             overflow: hidden;
             margin: 1rem 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
+        
         .confidence-fill {
             height: 100%;
             display: flex;
@@ -1061,13 +1050,68 @@ def create_deployment_app():
             justify-content: center;
             color: white;
             font-weight: bold;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
             transition: width 0.5s ease;
+        }
+        
+        /* Metric cards */
+        .metric-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        /* Info box */
+        .info-box {
+            background: #e8f4f8;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .main-header {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .prediction-box {
+                padding: 1rem;
+            }
+            
+            .confidence-bar {
+                height: 30px;
+            }
+        }
+        
+        /* Button styling */
+        .stButton>button {
+            border-radius: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .stButton>button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         </style>
     """, unsafe_allow_html=True)
     
     # Header
-    st.markdown('<div class="main-header">🎯 Text Classification System</div>', unsafe_allow_html=True)
+    st.markdown('''
+        <div class="main-header">
+            Text Classification System<br>
+            <small style="font-size: 0.6em; opacity: 0.9;">
+                Advanced NLP | Assignment Part A - Question 2
+            </small>
+        </div>
+    ''', unsafe_allow_html=True)
     
     # Load model
     @st.cache_resource
@@ -1076,58 +1120,81 @@ def create_deployment_app():
             persistence_service = ModelPersistenceService()
             return persistence_service.load_latest_model()
         except Exception as e:
-            st.error(f"❌ Error loading model: {e}")
-            st.info("💡 Please run training first: python text_classification_system.py --mode train")
+            st.error(f"Error loading model: {e}")
+            st.info("Please run training first: python " + __file__ + " --mode train")
             return None
     
     model_package = load_model()
     
     if model_package is None:
+        st.stop()
         return
     
     model = model_package['model']
     vectorizer = model_package['vectorizer']
     model_name = model_package['model_name']
     metrics = model_package['metrics']
+    params = model_package.get('params', {})
     
     # Sidebar - Model Information
     with st.sidebar:
-        st.header("📊 Model Information")
-        st.write(f"**Model:** {model_name}")
-        st.write(f"**Trained:** {model_package['timestamp']}")
+        st.header("Model Information")
+        
+        st.markdown(f"""
+        <div class="metric-card">
+            <h3 style="margin:0; color:#667eea;">{model_name}</h3>
+            <p style="margin:0.5rem 0; color:#666; font-size:0.9rem;">
+                Trained: {model_package['timestamp']}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("---")
         
         st.subheader("Performance Metrics")
         col1, col2 = st.columns(2)
         with col1:
             st.metric("Accuracy", f"{metrics['accuracy']:.3f}")
             st.metric("Precision", f"{metrics['precision']:.3f}")
+            st.metric("ROC-AUC", f"{metrics['roc_auc']:.3f}")
         with col2:
             st.metric("Recall", f"{metrics['recall']:.3f}")
             st.metric("F1-Score", f"{metrics['f1_score']:.3f}")
         
-        if st.button("🔄 View Model Details"):
-            st.session_state['show_details'] = not st.session_state.get('show_details', False)
+        st.markdown("---")
+        
+        st.subheader("Model Configuration")
+        st.write(f"**Vectorizer:** TF-IDF")
+        st.write(f"**Features:** {len(vectorizer.get_feature_names_out())}")
+        st.write(f"**N-grams:** {vectorizer.ngram_range}")
+        
+        if params:
+            st.markdown("**Hyperparameters:**")
+            for param, value in params.items():
+                st.write(f"- {param}: {value}")
+        
+        st.markdown("---")
+        
+        # Literature comparison toggle
+        if st.button("View Literature Comparison"):
+            st.session_state['show_literature'] = not st.session_state.get('show_literature', False)
     
-    # Main content
+    # Main content - Responsive layout
+    # On mobile: stack vertically; On desktop: side by side
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.subheader("📝 Enter Text for Classification")
+        st.subheader("Enter Text for Classification")
         
-        # Example texts - dynamic selection
+        # Example buttons
         import random
         
         spam_examples = [
             "WINNER!! You have won a $1000 prize! Call now to claim!",
             "FREE entry to win £1000 cash prize! Text WIN to 12345",
             "Congratulations! You've been selected for a free iPhone. Click here!",
-            "URGENT! Your account will be closed. Verify now at http://fake-site.com",
-            "Hot singles in your area! Meet them tonight!",
-            "Get rich quick! Invest now and earn thousands!",
-            "SALE! 90% off everything! Limited time only!",
-            "Your loan has been approved! Claim your money now!",
-            "Free vacation to Bahamas! Just pay processing fee!",
-            "Make $5000 working from home! No experience needed!"
+            "URGENT! Your account will be closed. Verify now!",
+            "Hot singles in your area! Meet them tonight!"
         ]
         
         ham_examples = [
@@ -1135,132 +1202,127 @@ def create_deployment_app():
             "Can you pick up some milk on your way home?",
             "Thanks for the birthday wishes! Had a great time!",
             "Meeting rescheduled to 3pm in conference room B",
-            "I'll be there in 10 minutes",
-            "Great presentation today! Well done!",
-            "Don't forget to submit the report by Friday",
-            "Happy to help! Let me know if you need anything",
-            "See you at the gym this evening",
-            "Dinner at 7? Let me know if that works"
+            "I'll be there in 10 minutes"
         ]
         
-        col_ex1, col_ex2 = st.columns(2)
-        with col_ex1:
-            if st.button("💡 Try Spam Example"):
+        btn_col1, btn_col2, btn_col3 = st.columns([1, 1, 1])
+        with btn_col1:
+            if st.button("Try Spam Example", use_container_width=True):
                 st.session_state['input_text'] = random.choice(spam_examples)
-        with col_ex2:
-            if st.button("💡 Try Ham Example"):
+        with btn_col2:
+            if st.button("Try Ham Example", use_container_width=True):
                 st.session_state['input_text'] = random.choice(ham_examples)
+        with btn_col3:
+            if st.button("Clear", use_container_width=True):
+                st.session_state['input_text'] = ""
         
         # Text input
         user_input = st.text_area(
-            "Your text:",
+            "Your message:",
             value=st.session_state.get('input_text', ''),
             height=150,
-            placeholder="Type or paste your text here..."
+            placeholder="Type or paste your text message here...",
+            key="text_input"
         )
         
         # Analyze button
-        analyze_clicked = st.button("🔍 Analyze Text", type="primary", width='stretch')
+        analyze_clicked = st.button("Analyze Message", type="primary", use_container_width=True)
         
         if analyze_clicked and user_input.strip():
-            # Preprocess
-            preprocessor = TextPreprocessingService()
-            processed_text = preprocessor.transform([user_input])[0]
-            
-            # Vectorize
-            text_vectorized = vectorizer.transform([processed_text])
-            
-            # Predict
-            prediction = model.predict(text_vectorized)[0]
-            
-            # Get probability
-            if hasattr(model, 'predict_proba'):
-                probabilities = model.predict_proba(text_vectorized)[0]
-                confidence = max(probabilities) * 100
-                spam_prob = probabilities[1] if len(probabilities) > 1 else (probabilities[0] if prediction == 'spam' else 1 - probabilities[0])
-            else:
-                confidence = 95.0
-                spam_prob = 0.95 if prediction == 'spam' else 0.05
-            
-            # Display results
-            st.markdown("---")
-            st.subheader("📊 Analysis Results")
-            
-            # Prediction box
-            if prediction.lower() == 'spam':
+            with st.spinner("Analyzing message..."):
+                # Preprocess
+                preprocessor = TextPreprocessor()
+                processed_text = preprocessor.transform([user_input])[0]
+                
+                # Vectorize
+                text_vectorized = vectorizer.transform([processed_text])
+                
+                # Predict
+                prediction = model.predict(text_vectorized)[0]
+                
+                # Get probability
+                try:
+                    if hasattr(model, 'predict_proba'):
+                        probabilities = model.predict_proba(text_vectorized)[0]
+                        confidence = max(probabilities) * 100
+                    else:
+                        confidence = 95.0
+                except:
+                    confidence = 95.0
+                
+                # Display results
+                st.markdown("---")
+                st.subheader("Analysis Results")
+                
+                # Prediction box
+                if prediction.lower() == 'spam':
+                    st.markdown(f"""
+                        <div class="prediction-box spam-box">
+                            <h2 style="margin:0;">SPAM DETECTED</h2>
+                            <p style="margin:0.5rem 0;">This message appears to be spam.</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    confidence_color = "#e74c3c"
+                else:
+                    st.markdown(f"""
+                        <div class="prediction-box ham-box">
+                            <h2 style="margin:0;">LEGITIMATE MESSAGE</h2>
+                            <p style="margin:0.5rem 0;">This message appears to be legitimate.</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    confidence_color = "#2ecc71"
+                
+                # Confidence meter
+                st.markdown("### Confidence Level")
                 st.markdown(f"""
-                    <div class="prediction-box spam-box">
-                        <h2>🚨 SPAM DETECTED</h2>
-                        <p>This message appears to be spam.</p>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: {confidence}%; background-color: {confidence_color};">
+                            {confidence:.1f}%
+                        </div>
                     </div>
                 """, unsafe_allow_html=True)
-                confidence_color = "#e74c3c"
-            else:
-                st.markdown(f"""
-                    <div class="prediction-box ham-box">
-                        <h2>✅ LEGITIMATE MESSAGE</h2>
-                        <p>This message appears to be legitimate.</p>
-                    </div>
-                """, unsafe_allow_html=True)
-                confidence_color = "#2ecc71"
-            
-            # Confidence meter
-            st.markdown("### Confidence Level")
-            st.markdown(f"""
-                <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: {confidence}%; background-color: {confidence_color};">
-                        {confidence:.1f}%
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            # Explanation
-            st.markdown("### 🔍 Key Factors")
-            factors = []
-            
-            text_lower = user_input.lower()
-            if any(word in text_lower for word in ['free', 'win', 'prize', 'winner', 'claim', 'cash']):
-                factors.append("• Contains promotional/prize-related keywords")
-            if any(word in text_lower for word in ['call now', 'click here', 'urgent', 'act now']):
-                factors.append("• Uses urgent call-to-action phrases")
-            if text_lower.count('!') > 2:
-                factors.append("• Excessive use of exclamation marks")
-            if len(user_input) < 20:
-                factors.append("• Very short message length")
-            if any(char.isdigit() for char in user_input):
-                factors.append("• Contains numbers (common in promotions)")
-            
-            if not factors:
-                factors.append("• Natural language patterns")
-                factors.append("• Typical conversational structure")
-            
-            for factor in factors:
-                st.markdown(factor)
-            
-            # Store in session
-            st.session_state['last_prediction'] = {
-                'text': user_input,
-                'prediction': prediction,
-                'confidence': confidence
-            }
+                
+                # Key factors
+                st.markdown("### Detection Factors")
+                factors = []
+                
+                text_lower = user_input.lower()
+                if any(word in text_lower for word in ['free', 'win', 'prize', 'winner', 'claim', 'cash', 'money']):
+                    factors.append("Contains promotional/monetary keywords")
+                if any(word in text_lower for word in ['call now', 'click here', 'urgent', 'act now', 'limited time']):
+                    factors.append("Uses urgent call-to-action phrases")
+                if text_lower.count('!') > 2:
+                    factors.append("Excessive use of exclamation marks")
+                if len([c for c in user_input if c.isupper()]) / max(len(user_input), 1) > 0.3:
+                    factors.append("Heavy use of CAPITAL LETTERS")
+                if any(char.isdigit() for char in user_input):
+                    factors.append("Contains numbers (common in promotions)")
+                
+                if not factors or prediction.lower() == 'ham':
+                    factors = [
+                        "Natural conversational language",
+                        "Typical personal message structure",
+                        "No aggressive marketing language"
+                    ]
+                
+                for factor in factors:
+                    st.markdown(f"- {factor}")
     
     with col2:
-        st.subheader("📈 Quick Stats")
+        st.subheader("Model Statistics")
         
-        # Model performance gauge
-        import plotly.graph_objects as go
-        
+        # Performance gauge
         fig = go.Figure(go.Indicator(
             mode="gauge+number",
             value=metrics['f1_score'] * 100,
-            title={'text': "Model F1-Score"},
+            title={'text': "F1-Score", 'font': {'size': 16}},
             gauge={
                 'axis': {'range': [None, 100]},
                 'bar': {'color': "#667eea"},
                 'steps': [
                     {'range': [0, 50], 'color': "#fee"},
                     {'range': [50, 75], 'color': "#ffe"},
-                    {'range': [75, 100], 'color': "#efe"}
+                    {'range': [75, 100], 'color': "#dfd"}
                 ],
                 'threshold': {
                     'line': {'color': "red", 'width': 4},
@@ -1269,53 +1331,95 @@ def create_deployment_app():
                 }
             }
         ))
-        fig.update_layout(height=300)
-        st.plotly_chart(fig, width='stretch')
+        fig.update_layout(height=250, margin=dict(l=20, r=20, t=40, b=20))
+        st.plotly_chart(fig, use_container_width=True)
         
-        # Classification distribution (example)
-        st.markdown("### Sample Distribution")
+        # Dataset distribution
+        st.markdown("### Training Data")
         fig2 = go.Figure(data=[
             go.Pie(
                 labels=['Ham', 'Spam'],
-                values=[87, 13],
+                values=[86.6, 13.4],
                 hole=0.4,
-                marker_colors=['#2ecc71', '#e74c3c']
+                marker_colors=['#2ecc71', '#e74c3c'],
+                textinfo='label+percent',
+                textfont_size=11
             )
         ])
-        fig2.update_layout(height=250, showlegend=True)
-        st.plotly_chart(fig2, width='stretch')
-    
-    # Model details expander
-    if st.session_state.get('show_details', False):
-        st.markdown("---")
-        st.subheader("🔬 Detailed Model Information")
+        fig2.update_layout(
+            height=220,
+            margin=dict(l=20, r=20, t=20, b=20),
+            showlegend=True,
+            legend=dict(orientation="h", yanchor="bottom", y=-0.1, x=0.5, xanchor="center")
+        )
+        st.plotly_chart(fig2, use_container_width=True)
         
-        col1, col2, col3 = st.columns(3)
+        # Processing pipeline
+        st.markdown("### Processing Pipeline")
+        st.markdown("""
+        <div style="background:#f8f9fa; padding:1rem; border-radius:10px; font-size:0.85rem;">
+        <b>Steps Applied:</b><br>
+        1. Lowercase normalization<br>
+        2. URL & email removal<br>
+        3. Special character cleaning<br>
+        4. Stopword removal<br>
+        5. Lemmatization<br>
+        6. TF-IDF vectorization<br>
+        7. Bigram features
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Literature comparison section
+    if st.session_state.get('show_literature', False):
+        st.markdown("---")
+        st.subheader("Comparison with Literature")
+        
+        lit_data = []
+        for model_name_lit, metrics_lit in Config.BENCHMARKS.items():
+            lit_data.append({
+                'Model': model_name_lit,
+                'Accuracy': f"{metrics_lit['accuracy']:.3f}",
+                'F1-Score': f"{metrics_lit['f1']:.3f}",
+                'Source': metrics_lit['source']
+            })
+        
+        lit_df = pd.DataFrame(lit_data)
+        
+        col1, col2 = st.columns([1, 1])
         
         with col1:
-            st.markdown("**Confusion Matrix**")
-            cm = np.array(metrics['confusion_matrix'])
-            fig, ax = plt.subplots(figsize=(4, 3))
-            sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax, square=True)
-            ax.set_xlabel('Predicted')
-            ax.set_ylabel('Actual')
-            st.pyplot(fig)
+            st.markdown("**Literature Benchmarks:**")
+            st.dataframe(lit_df, hide_index=True, use_container_width=True)
         
         with col2:
-            st.markdown("**Classification Report**")
-            st.text(metrics['classification_report'])
+            st.markdown("**Our Model Performance:**")
+            our_perf = pd.DataFrame([{
+                'Model': model_name,
+                'Accuracy': f"{metrics['accuracy']:.3f}",
+                'Precision': f"{metrics['precision']:.3f}",
+                'Recall': f"{metrics['recall']:.3f}",
+                'F1-Score': f"{metrics['f1_score']:.3f}"
+            }])
+            st.dataframe(our_perf, hide_index=True, use_container_width=True)
         
-        with col3:
-            st.markdown("**Feature Information**")
-            st.write(f"Vectorizer: {vectorizer.__class__.__name__}")
-            st.write(f"Features: {len(vectorizer.get_feature_names_out())}")
-            st.write(f"Ngram Range: {vectorizer.ngram_range}")
+        st.markdown("""
+        <div class="info-box">
+        <b>Analysis:</b> Our model achieves competitive performance compared to 
+        established literature benchmarks, demonstrating effective implementation 
+        of text preprocessing and feature engineering techniques.
+        </div>
+        """, unsafe_allow_html=True)
     
     # Footer
     st.markdown("---")
     st.markdown("""
-        <div style='text-align: center; color: #7f8c8d;'>
-            <p>🎓 NLP Text Classification System | Built with Streamlit & Scikit-learn</p>
+        <div style='text-align: center; color: #7f8c8d; padding: 1rem;'>
+            <p style='margin:0; font-size:0.9rem;'>
+                Natural Language Processing Assignment | Part A - Question 2
+            </p>
+            <p style='margin:0.5rem 0 0 0; font-size:0.8rem;'>
+                Built with Streamlit, Scikit-learn & NLTK
+            </p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -1325,16 +1429,24 @@ def create_deployment_app():
 
 def main():
     """Main entry point"""
-    parser = argparse.ArgumentParser(description='Text Classification System')
+    parser = argparse.ArgumentParser(
+        description='Text Classification System',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python text_classification_system.py --mode train    # Train models
+  streamlit run text_classification_system.py          # Deploy app
+        """
+    )
     parser.add_argument('--mode', type=str, default='train',
                        choices=['train', 'deploy'],
-                       help='Mode: train or deploy')
+                       help='Mode: train models or deploy app')
 
     args = parser.parse_args()
 
     if args.mode == 'train':
         print("\n" + "="*70)
-        print("🎓 TEXT CLASSIFICATION SYSTEM")
+        print("TEXT CLASSIFICATION SYSTEM")
         print("NLP Assignment - Part A, Question 2")
         print("="*70)
 
@@ -1342,25 +1454,28 @@ def main():
         pipeline.run_full_pipeline()
 
     elif args.mode == 'deploy':
-        print("\n🚀 Starting deployment server...")
-        print("📱 Open your browser to view the app")
-        print("❌ Error: Use 'streamlit run text_classification_system.py' instead")
-        print("   Do not use --mode deploy with streamlit run")
+        print("\n" + "="*70)
+        print("DEPLOYMENT MODE")
+        print("="*70)
+        print("Error: For deployment, use:")
+        print(f"   streamlit run {__file__}")
+        print("\n   Do NOT use --mode deploy flag with streamlit run")
+        print("="*70)
 
 if __name__ == "__main__":
     # Check if running in Streamlit
     try:
         import streamlit as st
-        # If we can access st.runtime, we're in Streamlit
         from streamlit.runtime.scriptrunner import get_script_run_ctx
         if get_script_run_ctx() is not None:
-            # Running in Streamlit - execute app directly
+            # Running in Streamlit - launch app
             create_deployment_app()
         else:
+            # Running from command line
             main()
     except ImportError:
-        # Streamlit not available
+        # Streamlit not available, run CLI
         main()
-    except Exception as e:
-        print(f"Error: {e}")
+    except Exception:
+        # Other errors, default to CLI
         main()

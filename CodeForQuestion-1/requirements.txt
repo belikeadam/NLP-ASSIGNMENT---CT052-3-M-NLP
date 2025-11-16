@@ -1,0 +1,22 @@
+# ============================================================================
+# REQUIREMENTS.TXT - Spelling Correction System
+# Natural Language Processing Assignment - Part A, Question 1
+# ============================================================================
+
+# Core NLP Library
+nltk>=3.8.0,<4.0.0
+
+# Optional: For downloading medical corpus from Kaggle
+kagglehub>=0.1.0
+
+# Standard Library (included with Python, no installation needed):
+# - tkinter (GUI framework)
+# - pickle (model persistence)
+# - re (regular expressions)
+# - json (data serialization)
+# - collections (Counter, defaultdict)
+# - typing (type hints)
+# - dataclasses (data structures)
+# - abc (abstract base classes)
+# - threading (background tasks)
+# - os (file operations)
