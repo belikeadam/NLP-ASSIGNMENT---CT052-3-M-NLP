@@ -87,48 +87,53 @@ class Config:
     EDA_DIR = os.path.join(BASE_DIR, "eda_results")
     MODELS_DIR = os.path.join(BASE_DIR, "saved_models")
     
-    # Model configurations
+    # Model configurations - SVM and Logistic Regression prioritized
     MODELS = {
-        'Naive Bayes': {
-            'class': MultinomialNB,
-            'params': {'alpha': [0.1, 0.5, 1.0, 2.0]},
-            'description': 'Probabilistic classifier using Bayes theorem'
+        'Support Vector Machine': {
+            'class': SVC,
+            'params': {
+                'C': [0.1, 1, 10, 100],
+                'kernel': ['linear', 'rbf'],
+                'gamma': ['scale', 'auto'],
+                'probability': [True]
+            },
+            'description': 'Maximum margin classifier - Best for text classification'
         },
         'Logistic Regression': {
             'class': LogisticRegression,
             'params': {
-                'C': [0.1, 1, 10],
+                'C': [0.01, 0.1, 1, 10, 100],
+                # Use only solvers that support both L1 and L2 when needed
                 'solver': ['liblinear', 'saga'],
-                'max_iter': [1000]
+                'max_iter': [1000],
+                'random_state': [42]
             },
-            'description': 'Linear model for binary classification'
+            'description': 'Linear model with regularization - Excellent for text'
         },
-        'Support Vector Machine': {
-            'class': SVC,
-            'params': {
-                'C': [0.1, 1, 10],
-                'kernel': ['linear', 'rbf'],
-                'probability': [True]
-            },
-            'description': 'Maximum margin classifier'
+        'Naive Bayes': {
+            'class': MultinomialNB,
+            'params': {'alpha': [0.1, 0.5, 1.0, 2.0, 5.0]},
+            'description': 'Probabilistic classifier - Baseline for text classification'
         },
         'Random Forest': {
             'class': RandomForestClassifier,
             'params': {
-                'n_estimators': [50, 100, 200],
-                'max_depth': [None, 10, 20],
-                'min_samples_split': [2, 5]
+                'n_estimators': [100, 200],
+                'max_depth': [10, 20, None],
+                'min_samples_split': [2, 5],
+                'class_weight': ['balanced', None]
             },
-            'description': 'Ensemble of decision trees'
+            'description': 'Ensemble method - Good for feature importance analysis'
         },
         'Gradient Boosting': {
             'class': GradientBoostingClassifier,
             'params': {
-                'n_estimators': [50, 100, 200],
-                'learning_rate': [0.01, 0.1, 0.2],
-                'max_depth': [3, 5, 7]
+                'n_estimators': [100, 200],
+                'learning_rate': [0.05, 0.1, 0.2],
+                'max_depth': [3, 5, 7],
+                'subsample': [0.8, 1.0]
             },
-            'description': 'Sequential ensemble method'
+            'description': 'Sequential ensemble - Handles complex patterns'
         }
     }
     
@@ -156,9 +161,11 @@ class Config:
     RANDOM_STATE = 42
     CV_FOLDS = 5
     
-    # Feature extraction
-    MAX_FEATURES = 3000
-    NGRAM_RANGE = (1, 2)
+    # Feature extraction - Optimized for spam detection
+    MAX_FEATURES = 5000  # Increased for better vocabulary coverage
+    NGRAM_RANGE = (1, 3)  # Unigrams, bigrams, and trigrams
+    MIN_DF = 2  # Minimum document frequency
+    MAX_DF = 0.95  # Maximum document frequency (remove too common words)
     
     @classmethod
     def initialize(cls):
@@ -229,92 +236,133 @@ class IModelTrainer(ABC):
 # ============================================================================
 
 class DataService(IDataService):
-    """Handles dataset loading and caching"""
-    
+    """
+    Handles real UCI SMS Spam dataset loading and caching
+    """
+
     def __init__(self):
-        self.cache_file = os.path.join(Config.CACHE_DIR, "spam_dataset.csv")
-        
+        self.cache_file = os.path.join(Config.CACHE_DIR, "sms_spam_collection.csv")
+
     def load_dataset(self) -> pd.DataFrame:
-        """Load SMS Spam dataset"""
-        print("Loading dataset...")
-        
+        """Load real UCI SMS Spam Collection dataset (5,574 messages)"""
+        print("Loading UCI SMS Spam Collection dataset...")
+
         if os.path.exists(self.cache_file):
             print("Loading from cache...")
             df = pd.read_csv(self.cache_file)
         else:
-            print("Downloading from Kaggle...")
+            print("Downloading real dataset from UCI repository...")
             try:
-                df = self._download_from_kaggle()
+                df = self._download_uci_dataset()
                 df.to_csv(self.cache_file, index=False)
                 print(f"Dataset cached to {self.cache_file}")
             except Exception as e:
-                print(f"Warning: Could not download from Kaggle: {e}")
-                print("Creating sample dataset...")
-                df = self._create_sample_dataset()
-                df.to_csv(self.cache_file, index=False)
-        
-        print(f"Dataset loaded: {len(df)} samples")
+                print(f"Warning: Could not download from primary source: {e}")
+                print("Attempting alternative download method...")
+                try:
+                    df = self._download_from_kaggle()
+                    df.to_csv(self.cache_file, index=False)
+                    print(f"Dataset cached to {self.cache_file}")
+                except Exception as e2:
+                    raise Exception(f"Failed to download dataset. Errors: {e}, {e2}")
+
+        print(f"Dataset loaded: {len(df)} real SMS messages")
         return df
-    
+
+    def _download_uci_dataset(self) -> pd.DataFrame:
+        """Download from UCI repository directly"""
+        import urllib.request
+
+        url = "https://archive.ics.uci.edu/ml/machine-learning-databases/00228/smsspamcollection.zip"
+        zip_path = os.path.join(Config.CACHE_DIR, "smsspam.zip")
+
+        # Download zip file
+        urllib.request.urlretrieve(url, zip_path)
+
+        # Extract and read
+        import zipfile
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(Config.CACHE_DIR)
+
+        # Read the TSV file
+        data_file = os.path.join(Config.CACHE_DIR, "SMSSpamCollection")
+        df = pd.read_csv(data_file, sep='\t', names=['label', 'text'], encoding='utf-8')
+
+        # Clean up
+        os.remove(zip_path)
+        if os.path.exists(data_file):
+            os.remove(data_file)
+
+        return df
+
     def _download_from_kaggle(self) -> pd.DataFrame:
-        """Download dataset from Kaggle"""
+        """Alternative: Download from Kaggle"""
         import kagglehub
         path = kagglehub.dataset_download("uciml/sms-spam-collection-dataset")
-        
+
         csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
         if not csv_files:
-            raise FileNotFoundError("No CSV file found")
-        
+            raise FileNotFoundError("No CSV file found in Kaggle download")
+
         df = pd.read_csv(os.path.join(path, csv_files[0]), encoding='latin-1')
-        
+
+        # Handle different column naming conventions
         if 'v1' in df.columns and 'v2' in df.columns:
             df = df.rename(columns={'v1': 'label', 'v2': 'text'})
             df = df[['label', 'text']]
-        
+        elif 'Category' in df.columns and 'Message' in df.columns:
+            df = df.rename(columns={'Category': 'label', 'Message': 'text'})
+            df = df[['label', 'text']]
+
+        # Ensure consistent label format
+        df['label'] = df['label'].str.lower()
+
         return df
     
-    def _create_sample_dataset(self) -> pd.DataFrame:
-        """Create sample dataset for demonstration"""
-        spam = [
-            "WINNER!! You have won a 1 million dollar prize! Call now!",
-            "FREE entry to win £1000 cash prize! Text WIN to 12345",
-            "Congratulations! You've been selected for a free iPhone. Click here!",
-            "URGENT! Your account will be closed. Verify now!",
-            "Hot singles in your area! Meet them tonight!",
-            "Get rich quick! Invest now and earn thousands!",
-            "SALE! 90% off everything! Limited time only!",
-            "Your loan has been approved! Claim your money now!",
-            "Free vacation to Bahamas! Just pay processing fee!",
-            "Make $5000 working from home! No experience needed!"
-        ] * 50
-        
-        ham = [
-            "Hey, are we still meeting for lunch tomorrow?",
-            "Can you pick up some milk on your way home?",
-            "Thanks for the birthday wishes! Had a great time!",
-            "Meeting rescheduled to 3pm in conference room B",
-            "I'll be there in 10 minutes",
-            "Great presentation today! Well done!",
-            "Don't forget to submit the report by Friday",
-            "Happy to help! Let me know if you need anything",
-            "See you at the gym this evening",
-            "Dinner at 7? Let me know if that works"
-        ] * 50
-        
-        df = pd.DataFrame({
-            'label': ['spam']*len(spam) + ['ham']*len(ham),
-            'text': spam + ham
-        })
-        return df.sample(frac=1, random_state=Config.RANDOM_STATE).reset_index(drop=True)
+    def get_random_samples(self, label: str, n: int = 5) -> List[str]:
+        """
+        Get random samples from cached dataset for examples
+
+        Args:
+            label: 'spam' or 'ham'
+            n: Number of samples
+            
+        Returns:
+            List of message texts
+        """
+        if not os.path.exists(self.cache_file):
+            # Return default examples if dataset not yet cached
+            if label == 'spam':
+                return [
+                    "WINNER!! You have won a $1000 prize! Call now to claim!",
+                    "FREE entry to win £1000 cash prize! Text WIN to 12345",
+                    "Congratulations! You've been selected for a free iPhone. Click here!",
+                    "URGENT! Your account will be closed. Verify now!",
+                    "Hot singles in your area! Meet them tonight!"
+                ]
+            else:
+                return [
+                    "Hey, are we still meeting for lunch tomorrow?",
+                    "Can you pick up some milk on your way home?",
+                    "Thanks for the birthday wishes! Had a great time!",
+                    "Meeting rescheduled to 3pm in conference room B",
+                    "I'll be there in 10 minutes"
+                ]
+
+        df = pd.read_csv(self.cache_file)
+        samples = df[df['label'] == label]['text'].sample(n=min(n, len(df[df['label'] == label])))
+        return samples.tolist()
 
 # ============================================================================
 # TEXT PREPROCESSOR
 # ============================================================================
 
 class TextPreprocessor(IPreprocessor):
-    """Handles all text preprocessing operations"""
-    
-    def __init__(self):
+    """
+    Enhanced text preprocessing with spelling correction
+    """
+
+    def __init__(self, use_spelling_correction: bool = True):
         try:
             self.stopwords = set(stopwords.words('english'))
         except:
@@ -323,39 +371,235 @@ class TextPreprocessor(IPreprocessor):
             self.lemmatizer = WordNetLemmatizer()
         except:
             self.lemmatizer = None
-        
+
+        self.use_spelling_correction = use_spelling_correction
+        if use_spelling_correction:
+            self.spell_checker = SpellingCorrectionService()
+
     def transform(self, texts: List[str]) -> List[str]:
         """Apply preprocessing to texts"""
         return [self._preprocess_text(text) for text in texts]
-    
+
     def _preprocess_text(self, text: str) -> str:
-        """Preprocess a single text"""
-        # Lowercase
+        """Preprocess a single text with spelling correction"""
+
+        # Step 1: Spelling correction (BEFORE other preprocessing)
+        # This preserves spam indicators while fixing legitimate typos
+        if self.use_spelling_correction:
+            text = self.spell_checker.correct_text(text, preserve_spam_indicators=True)
+
+        # Step 2: Lowercase (but preserve some spam indicators first)
+        # Save UPPERCASE words as they're important spam features
+        uppercase_words = set(word for word in text.split() if word.isupper() and len(word) > 2)
         text = text.lower()
-        
-        # Remove URLs
-        text = re.sub(r'http\S+|www\S+|https\S+', '', text, flags=re.MULTILINE)
-        
-        # Remove email addresses
-        text = re.sub(r'\S+@\S+', '', text)
-        
-        # Remove special characters and digits
+
+        # Step 3: Remove URLs (but keep markers)
+        text = re.sub(r'http\S+|www\S+|https\S+', 'URL', text, flags=re.MULTILINE)
+
+        # Step 4: Remove email addresses (but keep markers)
+        text = re.sub(r'\S+@\S+', 'EMAIL', text)
+
+        # Step 5: Extract and preserve numbers (important for spam)
+        has_numbers = bool(re.search(r'\d', text))
+        numbers = re.findall(r'\d+', text)
+
+        # Step 6: Keep important punctuation patterns
+        has_exclamation = text.count('!') > 2
+        has_question = '?' in text
+        has_dollar = '$' in text or '£' in text or '€' in text
+
+        # Step 7: Remove special characters but keep spaces
         text = re.sub(r'[^a-zA-Z\s]', '', text)
-        
-        # Tokenize
+
+        # Step 8: Tokenize
         try:
             tokens = word_tokenize(text)
         except:
             tokens = text.split()
-        
-        # Remove stopwords
-        tokens = [t for t in tokens if t not in self.stopwords and len(t) > 2]
-        
-        # Lemmatization
+
+        # Step 9: Selective stopword removal
+        # Keep negations and important words for spam detection
+        important_words = {'no', 'not', 'free', 'win', 'call', 'click', 'urgent', 'now'}
+        tokens = [t for t in tokens if (t in important_words or 
+                                       t not in self.stopwords) and 
+                 len(t) > 2]
+
+        # Step 10: Lemmatization
         if self.lemmatizer:
             tokens = [self.lemmatizer.lemmatize(t) for t in tokens]
-        
+
+        # Step 11: Add back important features as tokens
+        if has_numbers:
+            tokens.append('HAS_NUMBER')
+        if has_exclamation:
+            tokens.append('MULTIPLE_EXCLAMATION')
+        if has_dollar:
+            tokens.append('HAS_CURRENCY')
+        if 'URL' in text:
+            tokens.append('HAS_URL')
+        if 'EMAIL' in text:
+            tokens.append('HAS_EMAIL')
+
+        # Step 12: Add uppercase indicator tokens
+        for word in uppercase_words:
+            tokens.append(f'UPPERCASE_{word.lower()}')
+
         return ' '.join(tokens)
+
+# ============================================================================
+# SPELLING CORRECTION SERVICE - MANDATORY FEATURE (30 MARKS)
+# ============================================================================
+
+class SpellingCorrectionService:
+    """
+    Context-aware spelling correction system for SMS spam detection
+    Preserves spam indicators while correcting legitimate typos
+    """
+
+    def __init__(self):
+        # Common spam keywords that should NOT be corrected
+        self.spam_vocabulary = {
+            'ur', 'u', 'txt', 'msg', 'pls', 'plz', 'thx', 'thnx', 'wat', 'wot',
+            'luv', 'gud', 'gr8', 'l8r', 'b4', 'c', 'r', 'y', 'k', 'ok', 'ppl',
+            'FREE', 'WINNER', 'URGENT', 'CALL', 'CLICK', 'WIN', 'PRIZE', 'CASH',
+            'won', 'claim', 'guaranteed', 'limited', 'offer', 'congratulations'
+        }
+
+        # Build word frequency dictionary from common English words
+        self.word_freq = self._build_word_frequency()
+        self.max_edit_distance = 2
+
+    def _build_word_frequency(self) -> Dict[str, int]:
+        """Build frequency dictionary from NLTK corpus"""
+        try:
+            from nltk.corpus import brown
+            words = brown.words()
+            return Counter(w.lower() for w in words if w.isalpha())
+        except:
+            # Fallback to basic dictionary
+            common_words = """
+            the be to of and a in that have it for not on with he as you do at
+            this but his by from they we say her she or an will my one all would
+            there their what so up out if about who get which go me when make can
+            like time no just him know take people into year your good some could
+            them see other than then now look only come its over think also back
+            after use two how our work first well way even new want because any
+            these give day most us great where much before must through same mean
+            tell should home help long here both small world may still own under
+            last read never am does another while thought young place important
+            every don put things might hand eyes need door off head room away turn
+            around without something seem next soon once ask between open play
+            three sure show love point form children close few light until large
+            real often hold keep today stand better left across run hear number
+            word boy girl mother father nothing case least city field fact second
+            book carry kind answer hard less problem week toward white side bring
+            begin course set land end week against group call life public become
+            really happen himself during understand word however talk always stop
+            why happen woman member pay law meet car almost grow system set perhaps
+            night live four already might against lead change interest face person
+            money serve appear move stand better water low reach name hour black
+            write story part live group friend seem kind watch family story high
+            """.split()
+            return Counter(common_words)
+
+    def correct_text(self, text: str, preserve_spam_indicators: bool = True) -> str:
+        """
+        Correct spelling in text while preserving spam indicators
+        
+        Args:
+            text: Input text
+            preserve_spam_indicators: If True, keeps spam-related misspellings
+        
+        Returns:
+            Corrected text
+        """
+        words = text.split()
+        corrected_words = []
+
+        for word in words:
+            # Skip if it's a spam indicator and we want to preserve it
+            if preserve_spam_indicators and word.lower() in self.spam_vocabulary:
+                corrected_words.append(word)
+                continue
+
+            # Skip short words, numbers, and URLs
+            if len(word) <= 2 or word.isdigit() or 'http' in word.lower():
+                corrected_words.append(word)
+                continue
+
+            # Skip if all uppercase (likely acronym or spam emphasis)
+            if word.isupper() and len(word) > 2:
+                corrected_words.append(word)
+                continue
+
+            # Attempt correction
+            corrected = self._correct_word(word.lower())
+
+            # Preserve original case
+            if word[0].isupper():
+                corrected = corrected.capitalize()
+
+            corrected_words.append(corrected)
+
+        return ' '.join(corrected_words)
+
+    def _correct_word(self, word: str) -> str:
+        """Correct a single word using edit distance"""
+        # If word is in dictionary, no correction needed
+        if word in self.word_freq:
+            return word
+
+        # Generate candidates
+        candidates = self._generate_candidates(word)
+
+        if not candidates:
+            return word  # No good candidates, keep original
+
+        # Return most frequent candidate
+        return max(candidates, key=lambda w: self.word_freq.get(w, 0))
+
+    def _generate_candidates(self, word: str) -> set:
+        """Generate candidate corrections using edit distance"""
+        candidates = set()
+
+        # Edit distance 1
+        candidates.update(self._edits1(word))
+
+        # Edit distance 2 (if no candidates found)
+        if not any(c in self.word_freq for c in candidates):
+            for edited_word in self._edits1(word):
+                candidates.update(self._edits1(edited_word))
+
+        # Filter to known words only
+        return {w for w in candidates if w in self.word_freq}
+
+    def _edits1(self, word: str) -> set:
+        """All edits that are one edit away from word"""
+        letters = 'abcdefghijklmnopqrstuvwxyz'
+        splits = [(word[:i], word[i:]) for i in range(len(word) + 1)]
+
+        deletes = [L + R[1:] for L, R in splits if R]
+        transposes = [L + R[1] + R[0] + R[2:] for L, R in splits if len(R) > 1]
+        replaces = [L + c + R[1:] for L, R in splits if R for c in letters]
+        inserts = [L + c + R for L, R in splits for c in letters]
+
+        return set(deletes + transposes + replaces + inserts)
+
+    def analyze_corrections(self, original: str, corrected: str) -> Dict:
+        """Analyze what corrections were made"""
+        original_words = original.split()
+        corrected_words = corrected.split()
+
+        corrections = []
+        for orig, corr in zip(original_words, corrected_words):
+            if orig != corr:
+                corrections.append({'original': orig, 'corrected': corr})
+
+        return {
+            'num_corrections': len(corrections),
+            'corrections': corrections,
+            'correction_rate': len(corrections) / max(len(original_words), 1)
+        }
 
 # ============================================================================
 # EDA SERVICE
@@ -562,14 +806,32 @@ class ModelTrainingService:
         return configs
     
     def prepare_data(self, df: pd.DataFrame) -> Tuple:
-        """Prepare data for training"""
+        """Prepare data for training with enhanced preprocessing"""
         print("\n" + "="*70)
         print("DATA PREPARATION")
         print("="*70)
         
-        print("\n1. Preprocessing texts...")
-        preprocessor = TextPreprocessor()
+        print("\n1. Applying enhanced preprocessing with spelling correction...")
+        preprocessor = TextPreprocessor(use_spelling_correction=True)
         df['processed_text'] = preprocessor.transform(df['text'].tolist())
+        
+        # Analyze spelling corrections
+        sample_corrections = []
+        for i in range(min(5, len(df))):
+            original = df['text'].iloc[i]
+            processed = df['processed_text'].iloc[i]
+            if original != processed:
+                sample_corrections.append({
+                    'original': original[:50],
+                    'processed': processed[:50]
+                })
+
+        if sample_corrections:
+            print("\n   Sample corrections applied:")
+            for corr in sample_corrections[:3]:
+                print(f"   Original: {corr['original']}...")
+                print(f"   Processed: {corr['processed']}...")
+                print()
         
         print("2. Splitting data...")
         X_train, X_test, y_train, y_test = train_test_split(
@@ -582,16 +844,21 @@ class ModelTrainingService:
         print(f"   Training samples: {len(X_train)}")
         print(f"   Testing samples: {len(X_test)}")
         
-        print("3. Vectorizing with TF-IDF...")
+        print("3. Vectorizing with enhanced TF-IDF...")
         self.vectorizer = TfidfVectorizer(
-            max_features=Config.MAX_FEATURES, 
-            ngram_range=Config.NGRAM_RANGE
+            max_features=Config.MAX_FEATURES,
+            ngram_range=Config.NGRAM_RANGE,
+            min_df=Config.MIN_DF,
+            max_df=Config.MAX_DF,
+            sublinear_tf=True,  # Use sublinear scaling
+            use_idf=True
         )
         
         X_train_vec = self.vectorizer.fit_transform(X_train)
         X_test_vec = self.vectorizer.transform(X_test)
         
         print(f"   Feature dimensions: {X_train_vec.shape[1]}")
+        print(f"   Sparsity: {(1 - X_train_vec.nnz / (X_train_vec.shape[0] * X_train_vec.shape[1])):.2%}")
         
         return X_train_vec, X_test_vec, y_train, y_test
     
@@ -1178,6 +1445,23 @@ def create_deployment_app():
             st.markdown("**Hyperparameters:**")
             for param, value in params.items():
                 st.write(f"- {param}: {value}")
+
+        st.markdown("---")
+        st.subheader("Dataset Information")
+        try:
+            # Use DataService to read dataset (will use cache if available)
+            ds = DataService()
+            df_info = ds.load_dataset()
+            total = len(df_info)
+            spam_count = int(df_info['label'].value_counts().get('spam', 0))
+            ham_count = int(df_info['label'].value_counts().get('ham', 0))
+            st.write(f"**Source:** UCI SMS Spam Collection")
+            st.write(f"**Total Messages:** {total:,}")
+            st.write(f"**Spam Messages:** {spam_count} ({spam_count/total*100:.1f}%)")
+            st.write(f"**Ham Messages:** {ham_count} ({ham_count/total*100:.1f}%)")
+            st.write(f"**Features Extracted:** {len(vectorizer.get_feature_names_out())}")
+        except Exception as e:
+            st.info("Dataset not available yet. Run training to download the UCI dataset.")
         
         st.markdown("---")
         
@@ -1194,30 +1478,26 @@ def create_deployment_app():
         # Example buttons
         import random
         
-        spam_examples = [
-            "WINNER!! You have won a $1000 prize! Call now to claim!",
-            "FREE entry to win £1000 cash prize! Text WIN to 12345",
-            "Congratulations! You've been selected for a free iPhone. Click here!",
-            "URGENT! Your account will be closed. Verify now!",
-            "Hot singles in your area! Meet them tonight!"
-        ]
-        
-        ham_examples = [
-            "Hey, are we still meeting for lunch tomorrow?",
-            "Can you pick up some milk on your way home?",
-            "Thanks for the birthday wishes! Had a great time!",
-            "Meeting rescheduled to 3pm in conference room B",
-            "I'll be there in 10 minutes"
-        ]
+        # Load real examples from dataset
+        @st.cache_data
+        def load_examples():
+            """Load real examples from the actual dataset"""
+            data_service = DataService()
+            return {
+                'spam': data_service.get_random_samples('spam', n=10),
+                'ham': data_service.get_random_samples('ham', n=10)
+            }
+
+        examples = load_examples()
         
         btn_col1, btn_col2, btn_col3 = st.columns([1, 1, 1])
         with btn_col1:
-            if st.button("Try Spam Example", key="spam_btn"):
-                st.session_state.input_text = random.choice(spam_examples)
+            if st.button("Try Real Spam Example", key="spam_btn"):
+                st.session_state.input_text = random.choice(examples['spam'])
                 st.rerun()
         with btn_col2:
-            if st.button("Try Ham Example", key="ham_btn"):
-                st.session_state.input_text = random.choice(ham_examples)
+            if st.button("Try Real Ham Example", key="ham_btn"):
+                st.session_state.input_text = random.choice(examples['ham'])
                 st.rerun()
         with btn_col3:
             if st.button("Clear", key="clear_btn"):
