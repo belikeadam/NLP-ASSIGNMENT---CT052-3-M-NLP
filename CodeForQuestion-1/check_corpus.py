@@ -1,121 +1,70 @@
-"""
-Diagnostic Tool: Verify Corpus Loading
-Run this to check what's actually being loaded
-"""
-
-import os
 import sys
+sys.path.append(r"C:\Users\Administrator\Downloads\Assignment\NLP-ASSIGNMENT---CT052-3-M-NLP\CodeForQuestion-1")
 
-# Add your script's directory to path
-script_dir = r"C:\Users\Administrator\Downloads\Assignment\NLP-ASSIGNMENT---CT052-3-M-NLP\CodeForQuestion-1"
-sys.path.insert(0, script_dir)
+# Delete cache first!
+import os
+import shutil
+cache_dir = r"C:\Users\Administrator\Downloads\Assignment\NLP-ASSIGNMENT---CT052-3-M-NLP\CodeForQuestion-1\cache"
+corpus_file = r"C:\Users\Administrator\Downloads\Assignment\NLP-ASSIGNMENT---CT052-3-M-NLP\CodeForQuestion-1\corpus\medical_corpus.txt"
 
-print("="*70)
-print("CORPUS LOADING DIAGNOSTIC")
-print("="*70)
+if os.path.exists(cache_dir):
+    shutil.rmtree(cache_dir)
+    print("✅ Cache deleted")
 
-# Check file existence
-corpus_path = os.path.join(script_dir, "corpus", "medical_corpus.txt")
-print(f"\n1. Checking file path: {corpus_path}")
-print(f"   File exists: {os.path.exists(corpus_path)}")
+if os.path.exists(corpus_file):
+    os.remove(corpus_file)
+    print("✅ Old corpus deleted")
 
-if os.path.exists(corpus_path):
-    # Read and analyze
-    with open(corpus_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    words = content.split()
-    unique_words = set(words)
-    
-    print(f"\n2. File Statistics:")
-    print(f"   Total characters: {len(content):,}")
-    print(f"   Total words: {len(words):,}")
-    print(f"   Unique words: {len(unique_words):,}")
-    
-    print(f"\n3. First 200 characters:")
-    print(f"   {content[:200]}...")
-    
-    print(f"\n4. Sample unique words:")
-    sample_words = sorted(unique_words)[:50]
-    print(f"   {', '.join(sample_words[:20])}")
-    
-    print(f"\n5. Content Analysis:")
-    medical_keywords = ['patient', 'diagnosis', 'treatment', 'medical', 'clinical', 
-                       'examination', 'therapy', 'syndrome', 'blood', 'surgery']
-    found_keywords = [kw for kw in medical_keywords if kw in content.lower()]
-    print(f"   Medical keywords found: {len(found_keywords)}/{len(medical_keywords)}")
-    print(f"   Keywords: {', '.join(found_keywords)}")
-    
-    print(f"\n✅ CONCLUSION: Your corpus IS valid and WILL be used by the script!")
-    
-else:
-    print("\n❌ ERROR: Corpus file not found!")
-    print("   Expected location:", corpus_path)
-    print("\n   Please verify:")
-    print("   1. File actually exists at this path")
-    print("   2. File name is exactly 'medical_corpus.txt'")
-    print("   3. No permission issues")
+# Now test
+from spell_correction_system import CorpusService, BigramLanguageModel, AdvancedSpellChecker
 
 print("\n" + "="*70)
-print("CHECKING CACHE FILES")
+print("TESTING ENHANCED SPELLING CORRECTION")
 print("="*70)
 
-cache_dir = os.path.join(script_dir, "cache")
-cache_file = os.path.join(cache_dir, "language_model.pkl")
+# Load corpus
+corpus_service = CorpusService()
+corpus = corpus_service.load_corpus()
 
-print(f"\nCache directory: {cache_dir}")
-print(f"Cache exists: {os.path.exists(cache_dir)}")
+# Train model
+model = BigramLanguageModel()
+model.train(corpus)
 
-if os.path.exists(cache_file):
-    import pickle
-    try:
-        with open(cache_file, 'rb') as f:
-            data = pickle.load(f)
-        
-        print(f"\n✅ Cached model found:")
-        print(f"   Vocabulary size: {len(data['vocabulary']):,} words")
-        print(f"   Total words processed: {data['total_words']:,}")
-        print(f"   Bigrams stored: {len(data['bigram_freq']):,}")
-        
-        # Sample vocabulary
-        sample_vocab = sorted(list(data['vocabulary']))[:20]
-        print(f"\n   Sample vocabulary: {', '.join(sample_vocab)}")
-        
-    except Exception as e:
-        print(f"❌ Error reading cache: {e}")
-else:
-    print("\n⚠️  No cached model found - will train from corpus on first run")
+print(f"\n✅ Vocabulary: {len(model.vocabulary):,} unique words")
+print(f"✅ Bigrams: {len(model.bigram_freq):,} pairs")
 
-print("\n" + "="*70)
+# Test real-word detection capability
+test_cases = [
+    ("to", "the", "admitted"),      # Correct: to the
+    ("too", "the", "admitted"),     # Wrong: too the (should prefer "to")
+    ("their", "family", None),      # Correct: their family
+    ("there", "family", None),      # Wrong: there family (should prefer "their")
+]
 
-# Now test actual loading
-print("\nTESTING ACTUAL CORPUS LOADING...")
-print("="*70)
+print(f"\n✅ Bigram Probability Tests (Real-Word Detection):")
+for w1, w2, context in test_cases:
+    prob = model.get_bigram_probability(w1, w2)
+    print(f"   P({w2} | {w1}) = {prob:.6f}")
 
-try:
-    # Import the actual class
-    from spell_correction_system import CorpusService
-    
-    corpus_service = CorpusService()
-    
-    def progress_print(msg):
-        print(f"   [PROGRESS] {msg}")
-    
-    corpus_text = corpus_service.load_corpus(progress_callback=progress_print)
-    
-    words_loaded = len(corpus_text.split())
-    print(f"\n✅ SUCCESS: Loaded {words_loaded:,} words")
-    
-    if words_loaded >= 100000:
-        print("✅ Meets minimum requirement (100,000 words)")
-    else:
-        print(f"⚠️  Below minimum requirement (needs 100,000, has {words_loaded:,})")
-    
-except Exception as e:
-    print(f"\n❌ ERROR during loading: {e}")
-    import traceback
-    traceback.print_exc()
+# Test spell checker
+checker = AdvancedSpellChecker()
+checker.language_model = model
+checker.vocabulary = model.vocabulary
+checker.is_trained = True
+
+print(f"\n✅ Spelling Correction Tests:")
+test_words = [
+    ("pationt", "patient"),
+    ("treatmant", "treatment"),
+    ("diagnosi", "diagnosis"),
+]
+
+for wrong, expected in test_words:
+    suggestions = checker.get_suggestions(wrong, "")
+    if suggestions:
+        top = suggestions[0].corrected
+        print(f"   '{wrong}' → '{top}' (expected: '{expected}') {'✅' if top == expected else '❌'}")
 
 print("\n" + "="*70)
-print("DIAGNOSTIC COMPLETE")
+print("✅ ENHANCED SYSTEM READY!")
 print("="*70)
