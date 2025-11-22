@@ -224,6 +224,8 @@ class CorpusService:
         - Context-sensitive word pairs
         """
         
+        
+
         # ========================================================================
         # PART 1: Core Medical Vocabulary (Expanded)
         # ========================================================================
@@ -299,9 +301,7 @@ class CorpusService:
             "respiratory rate was slightly elevated this morning",
             "temperature was elevated indicating fever present",
             "oxygen saturation was maintained at normal levels",
-        ]
-        
-        # ========================================================================
+        ]        # ========================================================================
         # PART 2: Common English Words (CRITICAL for real-word detection)
         # These enable detection of to/too, their/there, than/then, etc.
         # ========================================================================
@@ -409,13 +409,13 @@ class CorpusService:
         
         all_text_parts = []
         
-        # Add medical sentences (5 repetitions for frequency)
-        for _ in range(5):
+        # Add medical sentences (10 repetitions for stronger coverage)
+        for _ in range(10):
             all_text_parts.extend(medical_sentences)
         
-        # Add common context sentences (15 repetitions - CRITICAL)
+        # Add common context sentences (25 repetitions - CRITICAL)
         # This is KEY for real-word detection
-        for _ in range(15):
+        for _ in range(25):
             all_text_parts.extend(common_context_sentences)
         
         # Add specialty sentences
@@ -430,8 +430,8 @@ class CorpusService:
                     specialty_sentences.append(f"treatment for {' '.join(chunk)} was started")
                     specialty_sentences.append(f"symptoms of {' '.join(chunk)} were noted")
         
-        # Add specialty sentences (3 repetitions)
-        for _ in range(3):
+        # Add specialty sentences (6 repetitions)
+        for _ in range(6):
             all_text_parts.extend(specialty_sentences)
         
         # Add specialty consultation phrases
@@ -441,6 +441,39 @@ class CorpusService:
             all_text_parts.append(f"consultation with {specialty_name} specialist was obtained")
             all_text_parts.append(f"{specialty_name} recommended additional testing and treatment")
         
+        # Add programmatic synthetic specialty terms to expand vocabulary
+        prefixes = [
+            'cardio','neuro','hepato','derma','pulmo','gastro','nephro','reno','uro','ent',
+            'ophthalmo','laryngo','angio','veno','vasculo','myo','osteo','psycho','endo','immuno',
+            'gyno','uro','onc','hemat','rheuma','dermo','infect','bacterio','viral','proto',
+            'micro','meta','peri','epi','hypo','hyper','tachy','brady','neo','cyto',
+        ]
+        bases = [
+            'heart','lung','liver','kidney','nerve','joint','spine','brain','stomach','intestine',
+            'rectum','skin','vein','artery','blood','muscle','bone','tendon','ligament','retina',
+            'cornea','eye','ear','nose','throat','pancreas','colon','bladder','prostate','uterus',
+            'cortex','medulla','ventricle','septum','valve','bronch','alveoli','synapse','axon','myelin',
+        ]
+        suffixes = ['itis','osis','pathy','algia','emia','oma','plasty','ectomy','otomy','graphy','scopy','genic']
+
+        generated_terms = set()
+        for p in prefixes:
+            for b in bases:
+                for sfx in suffixes:
+                    generated_terms.add(f"{p}{b}{sfx}")
+                    if len(generated_terms) >= 3000:
+                        break
+                if len(generated_terms) >= 3000:
+                    break
+            if len(generated_terms) >= 3000:
+                break
+
+        # Add generated terms into corpus as simple sentences
+        for term in list(generated_terms):
+            all_text_parts.append(f"patient diagnosed with {term}")
+            all_text_parts.append(f"treatment for {term} was started")
+            all_text_parts.append(f"symptoms of {term} were noted")
+
         # Shuffle to avoid repetitive patterns
         import random
         random.shuffle(all_text_parts)
