@@ -78,7 +78,7 @@ class Config:
     MIN_CORPUS_SIZE = 100000  # Minimum 100,000 words
     
     # Model settings
-    MAX_EDIT_DISTANCE = 2
+    MAX_EDIT_DISTANCE = 3  # Increased from 2 for better coverage
     SUGGESTION_COUNT = 5
     
     # GUI settings
@@ -294,6 +294,10 @@ class CorpusService:
             "started on insulin therapy for diabetes control",
             "given morphine for severe pain control immediately",
             "patient allergic to penicillin and sulfa drugs",
+            "medical history was reviewed prior to treatment",
+            "medical records were updated with new information",
+            "medical examination was completed successfully today",
+            "medical condition requires ongoing monitoring closely",
             
             # Vital Signs & Monitoring
             "blood pressure measured at normal levels today",
@@ -694,19 +698,31 @@ class SmartSuggestionService:
         # Generate candidate words
         candidates = self._generate_candidates(word_lower, vocabulary)
         
+        # If no candidates found, try a broader search
+        if not candidates:
+            candidates = self._fallback_candidates(word_lower, vocabulary)
+        
         # Score and rank candidates
         suggestions = []
         for candidate in candidates:
             edit_dist = self.edit_distance.damerau_levenshtein_distance(word_lower, candidate)
             
+            # Skip if edit distance is too high
+            if edit_dist > self.max_edit_distance:
+                continue
+            
             # Calculate scores
             word_prob = self.language_model.get_word_probability(candidate)
             context_score = self._calculate_context_score(candidate, prev_word, next_word)
             
-            # Weighted confidence: 40% edit distance + 30% frequency + 30% context
+            # Enhanced confidence calculation
+            freq_score = min(word_prob * 1000, 1.0)  # Boost frequent words
+            edit_score = 1.0 / (1 + edit_dist)  # Prefer lower edit distance
+            
+            # Weighted confidence: 30% edit distance + 40% frequency + 30% context
             confidence = (
-                0.4 * (1 / (1 + edit_dist)) +
-                0.3 * min(word_prob * 100, 1.0) +
+                0.3 * edit_score +
+                0.4 * freq_score +
                 0.3 * context_score
             )
             
@@ -719,7 +735,7 @@ class SmartSuggestionService:
             ))
         
         # Sort by confidence and return top N
-        suggestions.sort()
+        suggestions.sort(reverse=True)  # Sort in descending order
         return suggestions[:top_n]
     
     def _generate_candidates(self, word: str, vocabulary: Set[str]) -> Set[str]:
@@ -729,13 +745,25 @@ class SmartSuggestionService:
         # Edit distance 1 variations
         candidates.update(self._edits1(word))
         
-        # Edit distance 2 variations
+        # Edit distance 2 variations (from original word)
         if self.max_edit_distance >= 2:
             for edit1 in self._edits1(word):
                 candidates.update(self._edits1(edit1))
         
+        # Edit distance 3 variations (from edit distance 1 words)
+        if self.max_edit_distance >= 3:
+            edit1_words = self._edits1(word)
+            for edit1 in edit1_words:
+                candidates.update(self._edits1(edit1))
+        
         # Filter to only words in vocabulary
-        return candidates & vocabulary
+        candidates_in_vocab = candidates & vocabulary
+        
+        # If no candidates found and word is reasonably long, try phonetic/similar approaches
+        if not candidates_in_vocab and len(word) > 4:
+            candidates_in_vocab.update(self._find_similar_words(word, vocabulary))
+        
+        return candidates_in_vocab
     
     def _edits1(self, word: str) -> Set[str]:
         """Generate all strings at edit distance 1"""
@@ -760,6 +788,79 @@ class SmartSuggestionService:
             return prev_word, next_word
         except ValueError:
             return None, None
+    
+    def _find_similar_words(self, word: str, vocabulary: Set[str], max_results: int = 10) -> Set[str]:
+        """Find words that are similar but might not be caught by edit distance"""
+        similar = set()
+        word_lower = word.lower()
+        
+        # Look for words that share common substrings or patterns
+        for vocab_word in vocabulary:
+            vocab_lower = vocab_word.lower()
+            
+            # Skip if too different in length
+            if abs(len(word_lower) - len(vocab_lower)) > 2:
+                continue
+            
+            # Check for common prefixes/suffixes
+            min_len = min(len(word_lower), len(vocab_lower))
+            if min_len >= 4:
+                # Common prefix of at least 3 characters
+                if word_lower[:3] == vocab_lower[:3]:
+                    similar.add(vocab_word)
+                # Common suffix of at least 3 characters
+                elif word_lower[-3:] == vocab_lower[-3:]:
+                    similar.add(vocab_word)
+                # Common substring patterns
+                elif self._has_common_pattern(word_lower, vocab_lower):
+                    similar.add(vocab_word)
+            
+            if len(similar) >= max_results:
+                break
+        
+        return similar
+    
+    def _has_common_pattern(self, word1: str, word2: str) -> bool:
+        """Check if two words have common character patterns"""
+        # Simple pattern matching for common misspellings
+        patterns = [
+            ('ti', 'ci'), ('ci', 'ti'), ('si', 'ci'), ('ci', 'si'),
+            ('ph', 'f'), ('f', 'ph'), ('ck', 'k'), ('k', 'ck'),
+            ('qu', 'kw'), ('ea', 'ee'), ('ee', 'ea')
+        ]
+        
+        for pattern1, pattern2 in patterns:
+            if pattern1 in word1 and pattern2 in word2 and len(word1) == len(word2):
+                return True
+        
+        return False
+    
+    def _fallback_candidates(self, word: str, vocabulary: Set[str]) -> Set[str]:
+        """Fallback method to find candidates when edit distance fails"""
+        candidates = set()
+        word_lower = word.lower()
+        
+        # Try removing common suffixes and finding base words
+        suffixes = ['s', 'ed', 'ing', 'er', 'est', 'ly', 'tion', 'ment', 'ness', 'ity']
+        for suffix in suffixes:
+            if word_lower.endswith(suffix) and len(word_lower) > len(suffix) + 2:
+                base = word_lower[:-len(suffix)]
+                if base in vocabulary:
+                    candidates.add(base)
+        
+        # Try common letter substitutions
+        substitutions = {
+            'a': 'e', 'e': 'a', 'i': 'e', 'o': 'u', 'u': 'o',
+            'c': 'k', 'k': 'c', 'f': 'ph', 'ph': 'f', 's': 'c', 'c': 's'
+        }
+        
+        for i, char in enumerate(word_lower):
+            if char in substitutions:
+                alt_word = word_lower[:i] + substitutions[char] + word_lower[i+1:]
+                if alt_word in vocabulary:
+                    candidates.add(alt_word)
+        
+        return candidates
     
     def _calculate_context_score(self, word: str, prev_word: Optional[str], 
                                  next_word: Optional[str]) -> float:
