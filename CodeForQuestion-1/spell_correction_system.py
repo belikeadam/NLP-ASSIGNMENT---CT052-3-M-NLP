@@ -78,7 +78,9 @@ class Config:
     MIN_CORPUS_SIZE = 100000  # Minimum 100,000 words
     
     # Model settings
-    MAX_EDIT_DISTANCE = 3  # Increased from 2 for better coverage
+    # Default maximum edit distance for candidate generation. Kept at 2 for
+    # precision; code will adapt to 3 for very long words if needed.
+    MAX_EDIT_DISTANCE = 2  # Was 3; 2 is more practical and reduces false positives
     SUGGESTION_COUNT = 5
     
     # GUI settings
@@ -120,9 +122,11 @@ class Suggestion:
     edit_distance: int
     confidence: float
     context_score: float
-    
+    reason: str = ""  # Human-friendly reason explaining why this suggestion was chosen
+
     def __lt__(self, other):
-        return self.confidence > other.confidence
+        # Standard ascending order (lowest confidence first); callers use reverse=True
+        return self.confidence < other.confidence
 
 # ============================================================================
 # INTERFACES
@@ -449,7 +453,7 @@ class CorpusService:
         prefixes = [
             'cardio','neuro','hepato','derma','pulmo','gastro','nephro','reno','uro','ent',
             'ophthalmo','laryngo','angio','veno','vasculo','myo','osteo','psycho','endo','immuno',
-            'gyno','uro','onc','hemat','rheuma','dermo','infect','bacterio','viral','proto',
+            'gyno','onc','hemat','rheuma','dermo','infect','bacterio','viral','proto',
             'micro','meta','peri','epi','hypo','hyper','tachy','brady','neo','cyto',
         ]
         bases = [
@@ -686,15 +690,73 @@ class SmartSuggestionService:
         self.language_model = language_model
         self.edit_distance = edit_distance_service
         self.max_edit_distance = Config.MAX_EDIT_DISTANCE
+        # Real-word detection helper
+        self.realword_detector = self.RealWordDetector()
+
+    class RealWordDetector:
+        """Simple real-word confusion pair detector using bigram scoring."""
+        def __init__(self):
+            self.confusion_pairs = {
+                'to': {'too', 'two'},
+                'too': {'to', 'two'},
+                'their': {'there', "they're"},
+                'there': {'their', "they're"},
+                "they're": {'their', 'there'},
+                'than': {'then'},
+                'then': {'than'},
+                'your': {"you're"},
+                "you're": {'your'},
+                'its': {"it's"},
+                "it's": {'its'}
+            }
+
+        def check_confusion(self, word: str, prev_word: Optional[str], next_word: Optional[str], lm: ILanguageModel) -> Optional[str]:
+            """Return a better alternative from confusion_pairs if it fits the context better.
+
+            We compare simple bigram scores with a small threshold to avoid noisy suggestions.
+            """
+            word_lower = word.lower()
+            if word_lower not in self.confusion_pairs:
+                return None
+
+            # baseline score: sum of (prev->word) and (word->next)
+            def score_for(w):
+                s = 0.0
+                if prev_word:
+                    s += lm.get_bigram_probability(prev_word, w)
+                if next_word:
+                    s += lm.get_bigram_probability(w, next_word)
+                return s
+
+            current_score = score_for(word_lower)
+            best_alt = None
+            best_score = current_score
+
+            for alt in self.confusion_pairs[word_lower]:
+                alt_score = score_for(alt)
+                # require a meaningful improvement (e.g., 2x or +0.02 absolute)
+                if alt_score >= best_score * 2.0 or (alt_score - best_score) > 0.02:
+                    best_score = alt_score
+                    best_alt = alt
+
+            return best_alt
         
     def get_auto_suggestions(self, word: str, context: str, vocabulary: Set[str], 
                             top_n: int = Config.SUGGESTION_COUNT) -> List[Suggestion]:
         """Generate ranked suggestions using edit distance, frequency, and context"""
         word_lower = word.lower()
         
-        # Get context words
+    # Get context words
         prev_word, next_word = self._extract_context(word, context)
         
+        # Check for real-word confusion first (e.g., to/too/their/there)
+        if word_lower in vocabulary:
+            alt = self.realword_detector.check_confusion(word_lower, prev_word, next_word, self.language_model)
+            if alt and alt in vocabulary:
+                reason = f"real-word confusion: '{word_lower}' -> '{alt}'"
+                sugg = Suggestion(original=word, corrected=alt, edit_distance=1, confidence=0.90, context_score=0.95, reason=reason)
+                return [sugg]
+
         # Generate candidate words
         candidates = self._generate_candidates(word_lower, vocabulary)
         
@@ -704,11 +766,12 @@ class SmartSuggestionService:
         
         # Score and rank candidates
         suggestions = []
+        eff_max = self._effective_max_edit_distance(word_lower)
         for candidate in candidates:
             edit_dist = self.edit_distance.damerau_levenshtein_distance(word_lower, candidate)
             
             # Skip if edit distance is too high
-            if edit_dist > self.max_edit_distance:
+            if edit_dist > eff_max:
                 continue
             
             # Calculate scores
@@ -726,43 +789,78 @@ class SmartSuggestionService:
                 0.3 * context_score
             )
             
+            # Build explanation reason
+            reasons = []
+            if edit_dist == 1:
+                reasons.append("1 char difference")
+            elif edit_dist == 2:
+                reasons.append("2 char difference")
+            else:
+                reasons.append(f"{edit_dist} edits")
+            if word_prob > 0.01:
+                reasons.append("common word")
+            if context_score > 0.1:
+                reasons.append("fits context")
+
             suggestions.append(Suggestion(
                 original=word,
                 corrected=candidate,
                 edit_distance=edit_dist,
                 confidence=confidence,
                 context_score=context_score
+                , reason=", ".join(reasons)
             ))
         
         # Sort by confidence and return top N
-        suggestions.sort(reverse=True)  # Sort in descending order
+        suggestions.sort(reverse=True)  # Descending by confidence (highest first)
         return suggestions[:top_n]
     
-    def _generate_candidates(self, word: str, vocabulary: Set[str]) -> Set[str]:
-        """Generate candidate words within max edit distance"""
+    def _effective_max_edit_distance(self, word: str) -> int:
+        """Return an adaptive max edit distance: allow 3 for very long words only."""
+        if len(word) >= 9 and Config.MAX_EDIT_DISTANCE >= 3:
+            return 3
+        return min(self.max_edit_distance, Config.MAX_EDIT_DISTANCE)
+
+    def _generate_candidates(self, word: str, vocabulary: Set[str], stop_after: int = 10) -> Set[str]:
+        """Generate candidate words within max edit distance (with early stopping)."""
         candidates = set()
-        
-        # Edit distance 1 variations
-        candidates.update(self._edits1(word))
-        
-        # Edit distance 2 variations (from original word)
-        if self.max_edit_distance >= 2:
-            for edit1 in self._edits1(word):
-                candidates.update(self._edits1(edit1))
-        
-        # Edit distance 3 variations (from edit distance 1 words)
-        if self.max_edit_distance >= 3:
-            edit1_words = self._edits1(word)
-            for edit1 in edit1_words:
-                candidates.update(self._edits1(edit1))
-        
+
+        # Edit distance 1 variations (high priority)
+        ed1 = self._edits1(word)
+        candidates.update(ed1)
+
+        # Filter by vocab and early stop if enough candidates found
+        candidates_in_vocab = candidates & vocabulary
+        if len(candidates_in_vocab) >= stop_after:
+            return candidates_in_vocab
+
+        # Edit distance 2 variations (expand selectively) -- stop early
+        eff_max = self._effective_max_edit_distance(word)
+        if eff_max >= 2:
+            for edit1 in ed1:
+                ed2 = self._edits1(edit1)
+                for e in ed2:
+                    candidates.add(e)
+                    if len(candidates & vocabulary) >= stop_after:
+                        return candidates & vocabulary
+
+        # Edit distance 3 variations (from edit distance 1 words) only if allowed adaptively
+        if eff_max >= 3:
+            for edit1 in ed1:
+                ed2 = self._edits1(edit1)
+                for e2 in ed2:
+                    for e3 in self._edits1(e2):
+                        candidates.add(e3)
+                    if len(candidates & vocabulary) >= stop_after:
+                        return candidates & vocabulary
+
         # Filter to only words in vocabulary
         candidates_in_vocab = candidates & vocabulary
-        
+
         # If no candidates found and word is reasonably long, try phonetic/similar approaches
         if not candidates_in_vocab and len(word) > 4:
             candidates_in_vocab.update(self._find_similar_words(word, vocabulary))
-        
+
         return candidates_in_vocab
     
     def _edits1(self, word: str) -> Set[str]:
@@ -864,16 +962,29 @@ class SmartSuggestionService:
     
     def _calculate_context_score(self, word: str, prev_word: Optional[str], 
                                  next_word: Optional[str]) -> float:
-        """Calculate context score using bigram probabilities"""
-        score = 0.5
-        
+        """Enhanced context scoring with unigram fallback and bigram backoff.
+
+        Returns a score between 0 and 1. Uses unigram probability as baseline and
+        prefers best bigram match when available.
+        """
+        baseline = self.language_model.get_word_probability(word)
+
+        bigram_scores = []
         if prev_word:
-            score = max(score, self.language_model.get_bigram_probability(prev_word, word))
-        
+            p = self.language_model.get_bigram_probability(prev_word, word)
+            if p > 1e-9:
+                bigram_scores.append(p)
         if next_word:
-            score = max(score, self.language_model.get_bigram_probability(word, next_word))
-        
-        return min(score, 1.0)
+            p = self.language_model.get_bigram_probability(word, next_word)
+            if p > 1e-9:
+                bigram_scores.append(p)
+
+        if not bigram_scores:
+            return baseline
+
+        best_bigram = max(bigram_scores)
+        # Weighted: 30% unigram baseline, 70% best bigram
+        return min(0.3 * baseline + 0.7 * best_bigram, 1.0)
 
 # ============================================================================
 # SPELL CHECKER
@@ -1237,14 +1348,29 @@ class SpellCheckerGUI:
         text = self.preprocessor.preprocess_for_checking(text)
         words = re.finditer(r'\b[a-zA-Z]+\b', text)
         
+        # NOTE: _get_context_from_indices is a class method below moved out
+
         for match in words:
             word = match.group()
+            start_idx = match.start()
+            end_idx = match.end()
+            # If word is not in vocabulary: classic non-word error
             if not self.spell_checker.check_word(word):
-                start_idx = f"1.0+{match.start()}c"
-                end_idx = f"1.0+{match.end()}c"
-                
-                self.text_widget.tag_add('misspelled', start_idx, end_idx)
-                self.misspelled_words[word] = (start_idx, end_idx)
+                start_txt = f"1.0+{start_idx}c"
+                end_txt = f"1.0+{end_idx}c"
+                self.text_widget.tag_add('misspelled', start_txt, end_txt)
+                self.misspelled_words[word] = (start_txt, end_txt)
+            else:
+                # Active real-word detection for common confusions
+                prev_word, next_word = self._get_context_from_indices(text, start_idx, end_idx)
+                alt = self.spell_checker.suggestion_service.realword_detector.check_confusion(
+                    word.lower(), prev_word, next_word, self.spell_checker.language_model
+                )
+                if alt:
+                    start_txt = f"1.0+{start_idx}c"
+                    end_txt = f"1.0+{end_idx}c"
+                    self.text_widget.tag_add('misspelled', start_txt, end_txt)
+                    self.misspelled_words[word] = (start_txt, end_txt)
     
     def _on_word_click(self, event):
         """Show suggestions when clicking on misspelled word"""
@@ -1271,6 +1397,16 @@ class SpellCheckerGUI:
         
         except:
             pass
+
+    def _get_context_from_indices(self, text: str, start_idx: int, end_idx: int) -> Tuple[Optional[str], Optional[str]]:
+        """Extract previous and next words from text based on character indices"""
+        pre = text[:start_idx]
+        post = text[end_idx:]
+        prev_words = re.findall(r'\b\w+\b', pre)
+        next_words = re.findall(r'\b\w+\b', post)
+        prev_word = prev_words[-1] if prev_words else None
+        next_word = next_words[0] if next_words else None
+        return prev_word, next_word
     
     def _show_suggestions(self, word: str, event):
         """Show suggestion popup for misspelled word"""
@@ -1285,6 +1421,8 @@ class SpellCheckerGUI:
         
         for sug in suggestions[:5]:
             label = f"{sug.corrected} (distance: {sug.edit_distance}, confidence: {sug.confidence:.2f})"
+            if getattr(sug, 'reason', None):
+                label += f" — {sug.reason}"
             popup.add_command(
                 label=label,
                 command=lambda s=sug: self._apply_suggestion(s)
