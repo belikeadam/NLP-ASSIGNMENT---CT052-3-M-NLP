@@ -5,8 +5,8 @@
     "corpus_size": 129292,
     "vocabulary_size": 3552,
     "detection_accuracy": 1.0,
-    "correction_accuracy": 0.3,
-    "avg_response_time_ms": 9126.422357559204
+    "correction_accuracy": 0.7,
+    "avg_response_time_ms": 21.420621871948242
   },
   "key_features": [
     "Non-word error detection (>95% accuracy)",
@@ -19,12 +19,16 @@
   ],
   "detailed_results": {
     "metadata": {
-      "generated_at": "2025-11-23T11:21:13.730233",
+      "generated_at": "2025-11-23T12:02:08.265129",
       "system": "Advanced Spelling Correction System",
       "assignment": "NLP - Part A, Question 1"
     },
     "corpus_analysis": {
       "vocabulary_size": 3552,
+      "hybrid_vocabulary_sample": 634,
+      "hybrid_vocabulary_full_count": 234510,
+      "hybrid_enchant_installed": true,
+      "total_vocabulary_size": 238062,
       "total_words": 129292,
       "unique_word_ratio": 0.027472697460012994,
       "top_20_words": [
@@ -111,7 +115,7 @@
       ],
       "corpus_meets_requirement": true,
       "required_minimum": 100000,
-      "bigram_count": 20101,
+      "bigram_count": 20120,
       "domain": "Medical Science",
       "corpus_quality": {
         "diverse_vocabulary": false,
@@ -123,7 +127,7 @@
       "non_word_detection": {
         "test_count": 10,
         "detection_rate": 1.0,
-        "correction_accuracy": 0.3,
+        "correction_accuracy": 0.7,
         "results": [
           {
             "input": "teh",
@@ -131,103 +135,132 @@
             "detected": true,
             "suggestions": [
               "the",
-              "we",
-              "then"
+              "ter",
+              "tee"
             ],
             "top_suggestion": "the",
             "correct": true,
             "edit_distance": 1,
-            "confidence": 0.5511765591478791
+            "confidence": 0.7000000000000001,
+            "source": "enchant"
           },
           {
             "input": "speling",
             "expected": "spelling",
             "detected": true,
             "suggestions": [
-              "feeling",
-              "swelling"
+              "spewing",
+              "spieling",
+              "spelling"
             ],
-            "top_suggestion": "feeling",
+            "top_suggestion": "spewing",
             "correct": false,
-            "edit_distance": 2,
-            "confidence": 0.25367759418871616
+            "edit_distance": 1,
+            "confidence": 0.3015055139448229,
+            "source": "enchant"
           },
           {
             "input": "recieve",
             "expected": "receive",
             "detected": true,
             "suggestions": [
-              "received"
+              "receive",
+              "relieve"
             ],
-            "top_suggestion": "received",
-            "correct": false,
-            "edit_distance": 2,
-            "confidence": 0.22354473258308555
+            "top_suggestion": "receive",
+            "correct": true,
+            "edit_distance": 1,
+            "confidence": 0.3015055139448229,
+            "source": "enchant"
           },
           {
             "input": "occured",
             "expected": "occurred",
             "detected": true,
-            "suggestions": [],
-            "top_suggestion": "occured",
+            "suggestions": [
+              "occur-ed",
+              "occurred",
+              "occur ed"
+            ],
+            "top_suggestion": "occur-ed",
             "correct": false,
-            "edit_distance": -1,
-            "confidence": 0
+            "edit_distance": 1,
+            "confidence": 0.3015055139448229,
+            "source": "enchant"
           },
           {
             "input": "seperate",
             "expected": "separate",
             "detected": true,
-            "suggestions": [],
-            "top_suggestion": "seperate",
-            "correct": false,
-            "edit_distance": -1,
-            "confidence": 0
+            "suggestions": [
+              "separate",
+              "temperate",
+              "desperate"
+            ],
+            "top_suggestion": "separate",
+            "correct": true,
+            "edit_distance": 1,
+            "confidence": 0.3015055139448229,
+            "source": "enchant"
           },
           {
             "input": "graffe",
             "expected": "giraffe",
             "detected": true,
-            "suggestions": [],
-            "top_suggestion": "graffe",
+            "suggestions": [
+              "gaffe",
+              "agraffe",
+              "griffe"
+            ],
+            "top_suggestion": "gaffe",
             "correct": false,
-            "edit_distance": -1,
-            "confidence": 0
+            "edit_distance": 1,
+            "confidence": 0.3015055139448229,
+            "source": "enchant"
           },
           {
             "input": "patiant",
             "expected": "patient",
             "detected": true,
             "suggestions": [
-              "patient"
+              "patient",
+              "patin"
             ],
             "top_suggestion": "patient",
             "correct": true,
             "edit_distance": 1,
-            "confidence": 0.5683710339117016
+            "confidence": 0.7000000000000001,
+            "source": "enchant"
           },
           {
             "input": "medcine",
             "expected": "medicine",
             "detected": true,
-            "suggestions": [],
-            "top_suggestion": "medcine",
-            "correct": false,
-            "edit_distance": -1,
-            "confidence": 0
+            "suggestions": [
+              "medicine",
+              "med cine",
+              "med-cine"
+            ],
+            "top_suggestion": "medicine",
+            "correct": true,
+            "edit_distance": 1,
+            "confidence": 0.3015055139448229,
+            "source": "enchant"
           },
           {
             "input": "symtom",
             "expected": "symptom",
             "detected": true,
             "suggestions": [
-              "symptoms",
-              "symptom"
+              "symptom",
+              "sym-tom",
+              "sym tom"
             ],
-            "top_suggestion": "symptoms",
-            "correct": false,
-            "edit_distance": 2,
-            "confidence": 0.5157740223568821
+            "top_suggestion": "symptom",
+            "correct": true,
+            "edit_distance": 1,
+            "confidence": 0.3316157928412812,
+            "source": "enchant"
           },
           {
             "input": "hosptial",
@@ -239,97 +272,44 @@
             "top_suggestion": "hospital",
             "correct": true,
             "edit_distance": 1,
-            "confidence": 0.30367759418871615
+            "confidence": 0.37678121118596863,
+            "source": "enchant"
           }
         ]
       },
+      "hybrid_dictionary_enabled": true,
       "real_word_detection": {
         "test_count": 5,
-        "detection_rate": 1.0,
+        "detection_rate": 0.2,
         "results": [
           {
             "context": "I will go too the store",
             "expected_correction": "to",
-            "errors_detected": [
-              {
-                "word": "I",
-                "suggestion": "is",
-                "confidence": 0.5502717070265198
-              },
-              {
-                "word": "go",
-                "suggestion": "to",
-                "confidence": 0.5505177860272733
-              },
-              {
-                "word": "store",
-                "suggestion": "more",
-                "confidence": 0.2536485456262047
-              }
-            ],
-            "detection_successful": true
+            "errors_detected": [],
+            "detection_successful": false
           },
           {
             "context": "Their going to the park",
             "expected_correction": "They're",
-            "errors_detected": [
-              {
-                "word": "going",
-                "suggestion": "joint",
-                "confidence": 0.21149162715217057
-              },
-              {
-                "word": "park",
-                "suggestion": "pain",
-                "confidence": 0.500187745445543
-              }
-            ],
-            "detection_successful": true
+            "errors_detected": [],
+            "detection_successful": false
           },
           {
             "context": "Its a beautiful day",
             "expected_correction": "It's",
-            "errors_detected": [
-              {
-                "word": "Its",
-                "suggestion": "is",
-                "confidence": 0.5502717070265198
-              },
-              {
-                "word": "a",
-                "suggestion": "and",
-                "confidence": 0.5013331141719951
-              },
-              {
-                "word": "day",
-                "suggestion": "was",
-                "confidence": 0.5173773947081185
-              }
-            ],
-            "detection_successful": true
+            "errors_detected": [],
+            "detection_successful": false
           },
           {
             "context": "He is better then me",
             "expected_correction": "than",
-            "errors_detected": [
-              {
-                "word": "me",
-                "suggestion": "we",
-                "confidence": 0.5529953304667161
-              }
-            ],
-            "detection_successful": true
+            "errors_detected": [],
+            "detection_successful": false
           },
           {
             "context": "Where are they going",
             "expected_correction": null,
-            "errors_detected": [
-              {
-                "word": "going",
-                "suggestion": "joint",
-                "confidence": 0.21148982481808015
-              }
-            ],
+            "errors_detected": [],
             "detection_successful": true
           }
         ]
@@ -344,6 +324,12 @@
         "bigram_model": true,
         "context_scoring": true,
         "laplace_smoothing": true
+      },
+      "suggestion_source_counts": {
+        "enchant": 66,
+        "corpus": 0,
+        "realword": 0,
+        "unknown": 0
       }
     },
     "test_results": {
@@ -351,12 +337,12 @@
         {
           "category": "Common Misspellings",
           "test_count": 5,
-          "total_errors_found": 11,
+          "total_errors_found": 10,
           "results": [
             {
               "original": "The patiant has a symtom of fever",
-              "corrected": "The patient has and symptoms of fever",
-              "errors_found": 3,
+              "corrected": "The patient has a sym-tom of fever",
+              "errors_found": 2,
               "corrections": [
                 {
                   "original": "patiant",
@@ -365,92 +351,101 @@
                       "word": "patient",
                       "edit_distance": 1,
                       "confidence": 0.5581414673444339,
-                      "reason": "1 char difference, common word"
+                      "reason": "1 edit, common",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "patin",
+                      "edit_distance": 2,
+                      "confidence": 0.10155776313533187,
+                      "reason": "dictionary match",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "patient"
                 },
                 {
-                  "original": "a",
-                  "suggestions": [
-                    {
-                      "word": "and",
-                      "edit_distance": 2,
-                      "confidence": 0.5013523273428802,
-                      "reason": "2 char difference, common word"
-                    },
-                    {
-                      "word": "no",
-                      "edit_distance": 2,
-                      "confidence": 0.5013334972574286,
-                      "reason": "2 char difference"
-                    },
-                    {
-                      "word": "is",
-                      "edit_distance": 2,
-                      "confidence": 0.5002751321153593,
-                      "reason": "2 char difference"
-                    }
-                  ],
-                  "top_correction": "and"
-                },
-                {
                   "original": "symtom",
                   "suggestions": [
                     {
-                      "word": "symptoms",
-                      "edit_distance": 2,
-                      "confidence": 0.6395699060236933,
-                      "reason": "2 char difference, common word, fits context"
+                      "word": "sym-tom",
+                      "edit_distance": 1,
+                      "confidence": 0.3015055139448229,
+                      "reason": "1 edit, fits context",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "sym tom",
+                      "edit_distance": 1,
+                      "confidence": 0.3015055139448229,
+                      "reason": "1 edit, fits context",
+                      "source": "enchant"
                     },
                     {
                       "word": "symptom",
                       "edit_distance": 1,
-                      "confidence": 0.21330460338284601,
-                      "reason": "1 char difference"
+                      "confidence": 0.1816888105415648,
+                      "reason": "1 edit",
+                      "source": "enchant"
                     }
                   ],
-                  "top_correction": "symptoms"
+                  "top_correction": "sym-tom"
                 }
               ],
               "fully_corrected": true
             },
             {
               "original": "The medcine was adminsitered correctly",
-              "corrected": "The medcine was administered currently",
+              "corrected": "The medicine was administered correctly",
               "errors_found": 2,
               "corrections": [
+                {
+                  "original": "medcine",
+                  "suggestions": [
+                    {
+                      "word": "medicine",
+                      "edit_distance": 1,
+                      "confidence": 0.15155776313533187,
+                      "reason": "1 edit",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "med cine",
+                      "edit_distance": 1,
+                      "confidence": 0.15155776313533187,
+                      "reason": "1 edit",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "med-cine",
+                      "edit_distance": 1,
+                      "confidence": 0.15155776313533187,
+                      "reason": "1 edit",
+                      "source": "enchant"
+                    }
+                  ],
+                  "top_correction": "medicine"
+                },
                 {
                   "original": "adminsitered",
                   "suggestions": [
                     {
                       "word": "administered",
                       "edit_distance": 1,
-                      "confidence": 0.21330460338284601,
-                      "reason": "1 char difference"
+                      "confidence": 0.1816888105415648,
+                      "reason": "1 edit",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "administered"
-                },
-                {
-                  "original": "correctly",
-                  "suggestions": [
-                    {
-                      "word": "currently",
-                      "edit_distance": 2,
-                      "confidence": 0.1632790093718243,
-                      "reason": "2 char difference"
-                    }
-                  ],
-                  "top_correction": "currently"
                 }
               ],
               "fully_corrected": true
             },
             {
               "original": "Hosptial staff responded imediately",
-              "corrected": "hospital staff response immediately",
-              "errors_found": 3,
+              "corrected": "hospital staff responded immediately",
+              "errors_found": 2,
               "corrections": [
                 {
                   "original": "Hosptial",
@@ -458,23 +453,12 @@
                     {
                       "word": "hospital",
                       "edit_distance": 1,
-                      "confidence": 0.30365527486089094,
-                      "reason": "1 char difference"
+                      "confidence": 0.22687406367492235,
+                      "reason": "1 edit",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "hospital"
-                },
-                {
-                  "original": "responded",
-                  "suggestions": [
-                    {
-                      "word": "response",
-                      "edit_distance": 2,
-                      "confidence": 0.25365527486089096,
-                      "reason": "2 char difference"
-                    }
-                  ],
-                  "top_correction": "response"
                 },
                 {
                   "original": "imediately",
@@ -482,8 +466,23 @@
                     {
                       "word": "immediately",
                       "edit_distance": 1,
-                      "confidence": 0.3338104557943468,
-                      "reason": "1 char difference"
+                      "confidence": 0.39183635063419775,
+                      "reason": "1 edit, fits context",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "mediately",
+                      "edit_distance": 1,
+                      "confidence": 0.3015055139448229,
+                      "reason": "1 edit, fits context",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "i mediately",
+                      "edit_distance": 1,
+                      "confidence": 0.3015055139448229,
+                      "reason": "1 edit, fits context",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "immediately"
@@ -493,8 +492,8 @@
             },
             {
               "original": "The treamtent was succesful",
-              "corrected": "The treatment was succesful",
-              "errors_found": 1,
+              "corrected": "The treatment was successful",
+              "errors_found": 2,
               "corrections": [
                 {
                   "original": "treamtent",
@@ -503,10 +502,24 @@
                       "word": "treatment",
                       "edit_distance": 1,
                       "confidence": 0.5601170944712219,
-                      "reason": "1 char difference, common word"
+                      "reason": "1 edit, common",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "treatment"
+                },
+                {
+                  "original": "succesful",
+                  "suggestions": [
+                    {
+                      "word": "successful",
+                      "edit_distance": 1,
+                      "confidence": 0.15152486473216245,
+                      "reason": "1 edit",
+                      "source": "enchant"
+                    }
+                  ],
+                  "top_correction": "successful"
                 }
               ],
               "fully_corrected": true
@@ -523,7 +536,22 @@
                       "word": "patient",
                       "edit_distance": 1,
                       "confidence": 0.5555292803942875,
-                      "reason": "1 char difference, common word"
+                      "reason": "1 edit, common",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "patent",
+                      "edit_distance": 1,
+                      "confidence": 0.3015055139448229,
+                      "reason": "1 edit, fits context",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "pate int",
+                      "edit_distance": 1,
+                      "confidence": 0.3015055139448229,
+                      "reason": "1 edit, fits context",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "patient"
@@ -534,8 +562,16 @@
                     {
                       "word": "improvement",
                       "edit_distance": 1,
-                      "confidence": 0.3638879610753692,
-                      "reason": "1 char difference"
+                      "confidence": 0.2569964709929423,
+                      "reason": "1 edit",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "improvident",
+                      "edit_distance": 2,
+                      "confidence": 0.10156307116607641,
+                      "reason": "dictionary match",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "improvement"
@@ -548,7 +584,7 @@
         {
           "category": "Real-Word Errors",
           "test_count": 4,
-          "total_errors_found": 3,
+          "total_errors_found": 0,
           "results": [
             {
               "original": "The patient was taken too the emergency room",
@@ -559,53 +595,10 @@
             },
             {
               "original": "Their going to schedule a follow-up",
-              "corrected": "Their joint to schedule and follow-up",
-              "errors_found": 2,
-              "corrections": [
-                {
-                  "original": "going",
-                  "suggestions": [
-                    {
-                      "word": "joint",
-                      "edit_distance": 2,
-                      "confidence": 0.21149162715217057,
-                      "reason": "2 char difference"
-                    },
-                    {
-                      "word": "ongoing",
-                      "edit_distance": 2,
-                      "confidence": 0.163304603382846,
-                      "reason": "2 char difference"
-                    }
-                  ],
-                  "top_correction": "joint"
-                },
-                {
-                  "original": "a",
-                  "suggestions": [
-                    {
-                      "word": "and",
-                      "edit_distance": 2,
-                      "confidence": 0.5013529676607705,
-                      "reason": "2 char difference, common word"
-                    },
-                    {
-                      "word": "is",
-                      "edit_distance": 2,
-                      "confidence": 0.5002757724332497,
-                      "reason": "2 char difference"
-                    },
-                    {
-                      "word": "no",
-                      "edit_distance": 2,
-                      "confidence": 0.5001809250547259,
-                      "reason": "2 char difference"
-                    }
-                  ],
-                  "top_correction": "and"
-                }
-              ],
-              "fully_corrected": true
+              "corrected": "Their going to schedule a follow-up",
+              "errors_found": 0,
+              "corrections": [],
+              "fully_corrected": false
             },
             {
               "original": "The medication should be taken everyday",
@@ -616,42 +609,17 @@
             },
             {
               "original": "Its important to monitor the patient",
-              "corrected": "is important to monitor the patient",
-              "errors_found": 1,
-              "corrections": [
-                {
-                  "original": "Its",
-                  "suggestions": [
-                    {
-                      "word": "is",
-                      "edit_distance": 1,
-                      "confidence": 0.5556952607455281,
-                      "reason": "1 char difference"
-                    },
-                    {
-                      "word": "was",
-                      "edit_distance": 2,
-                      "confidence": 0.5052318917184999,
-                      "reason": "2 char difference, common word"
-                    },
-                    {
-                      "word": "to",
-                      "edit_distance": 2,
-                      "confidence": 0.5005109866765574,
-                      "reason": "2 char difference"
-                    }
-                  ],
-                  "top_correction": "is"
-                }
-              ],
-              "fully_corrected": true
+              "corrected": "Its important to monitor the patient",
+              "errors_found": 0,
+              "corrections": [],
+              "fully_corrected": false
             }
           ]
         },
         {
           "category": "Medical Terms",
           "test_count": 4,
-          "total_errors_found": 5,
+          "total_errors_found": 4,
           "results": [
             {
               "original": "The patient has diabetis",
@@ -664,8 +632,23 @@
                     {
                       "word": "diabetes",
                       "edit_distance": 1,
-                      "confidence": 0.38195897418694646,
-                      "reason": "1 char difference"
+                      "confidence": 0.26603440043558213,
+                      "reason": "1 edit",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "diabetics",
+                      "edit_distance": 1,
+                      "confidence": 0.15156385205212772,
+                      "reason": "1 edit",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "diabetic",
+                      "edit_distance": 1,
+                      "confidence": 0.15156385205212772,
+                      "reason": "1 edit",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "diabetes"
@@ -684,8 +667,16 @@
                     {
                       "word": "pneumonia",
                       "edit_distance": 1,
-                      "confidence": 0.3219189118404501,
-                      "reason": "1 char difference"
+                      "confidence": 0.23610461698554397,
+                      "reason": "1 edit",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "pneumonic",
+                      "edit_distance": 2,
+                      "confidence": 0.1015255534028637,
+                      "reason": "dictionary match",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "pneumonia"
@@ -704,8 +695,9 @@
                     {
                       "word": "arthritis",
                       "edit_distance": 2,
-                      "confidence": 0.21149028826656058,
-                      "reason": "2 char difference"
+                      "confidence": 0.15578627230811276,
+                      "reason": "dictionary match",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "arthritis"
@@ -715,41 +707,18 @@
             },
             {
               "original": "Has a history of hypertention",
-              "corrected": "Has and history of hypertension",
-              "errors_found": 2,
+              "corrected": "Has a history of hypertension",
+              "errors_found": 1,
               "corrections": [
-                {
-                  "original": "a",
-                  "suggestions": [
-                    {
-                      "word": "and",
-                      "edit_distance": 2,
-                      "confidence": 0.5013523273428802,
-                      "reason": "2 char difference, common word"
-                    },
-                    {
-                      "word": "no",
-                      "edit_distance": 2,
-                      "confidence": 0.5013334972574286,
-                      "reason": "2 char difference"
-                    },
-                    {
-                      "word": "is",
-                      "edit_distance": 2,
-                      "confidence": 0.5002751321153593,
-                      "reason": "2 char difference"
-                    }
-                  ],
-                  "top_correction": "and"
-                },
                 {
                   "original": "hypertention",
                   "suggestions": [
                     {
                       "word": "hypertension",
                       "edit_distance": 1,
-                      "confidence": 0.539161553585928,
-                      "reason": "1 char difference"
+                      "confidence": 0.3449502547037721,
+                      "reason": "1 edit",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "hypertension"
@@ -762,36 +731,39 @@
         {
           "category": "Mixed Errors",
           "test_count": 3,
-          "total_errors_found": 10,
+          "total_errors_found": 9,
           "results": [
             {
               "original": "Teh patiant has been diagnosd with diabetis",
-              "corrected": "the patient has been diagnosed with diabetes",
+              "corrected": "ted patient has been diagnosed with diabetes",
               "errors_found": 4,
               "corrections": [
                 {
                   "original": "Teh",
                   "suggestions": [
                     {
-                      "word": "the",
+                      "word": "ted",
                       "edit_distance": 1,
-                      "confidence": 0.5504045394535976,
-                      "reason": "1 char difference"
+                      "confidence": 0.3015055139448229,
+                      "reason": "1 edit, fits context",
+                      "source": "enchant"
                     },
                     {
-                      "word": "we",
-                      "edit_distance": 2,
-                      "confidence": 0.5001590257665539,
-                      "reason": "2 char difference"
+                      "word": "te",
+                      "edit_distance": 1,
+                      "confidence": 0.3015055139448229,
+                      "reason": "1 edit, fits context",
+                      "source": "enchant"
                     },
                     {
-                      "word": "then",
-                      "edit_distance": 2,
-                      "confidence": 0.5001590257665539,
-                      "reason": "2 char difference"
+                      "word": "th",
+                      "edit_distance": 1,
+                      "confidence": 0.3015055139448229,
+                      "reason": "1 edit, fits context",
+                      "source": "enchant"
                     }
                   ],
-                  "top_correction": "the"
+                  "top_correction": "ted"
                 },
                 {
                   "original": "patiant",
@@ -800,7 +772,15 @@
                       "word": "patient",
                       "edit_distance": 1,
                       "confidence": 0.5562480892253675,
-                      "reason": "1 char difference, common word"
+                      "reason": "1 edit, common",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "patin",
+                      "edit_distance": 2,
+                      "confidence": 0.2515055139448229,
+                      "reason": "fits context",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "patient"
@@ -812,13 +792,22 @@
                       "word": "diagnosed",
                       "edit_distance": 1,
                       "confidence": 0.6922964217803853,
-                      "reason": "1 char difference, common word, fits context"
+                      "reason": "1 edit, common, fits context",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "diagnose",
+                      "edit_distance": 1,
+                      "confidence": 0.15156449237001812,
+                      "reason": "1 edit",
+                      "source": "enchant"
                     },
                     {
                       "word": "diagnosis",
                       "edit_distance": 2,
-                      "confidence": 0.163304603382846,
-                      "reason": "2 char difference"
+                      "confidence": 0.1316888105415648,
+                      "reason": "dictionary match",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "diagnosed"
@@ -829,8 +818,23 @@
                     {
                       "word": "diabetes",
                       "edit_distance": 1,
-                      "confidence": 0.38215301925886996,
-                      "reason": "1 char difference"
+                      "confidence": 0.26622844550750563,
+                      "reason": "1 edit",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "diabetics",
+                      "edit_distance": 1,
+                      "confidence": 0.1515255534028637,
+                      "reason": "1 edit",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "diabetic",
+                      "edit_distance": 1,
+                      "confidence": 0.1515255534028637,
+                      "reason": "1 edit",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "diabetes"
@@ -840,7 +844,7 @@
             },
             {
               "original": "Hosptial records show previus treamtent",
-              "corrected": "hospital records showed previus treatment",
+              "corrected": "hospital records show previous treatment",
               "errors_found": 3,
               "corrections": [
                 {
@@ -849,35 +853,32 @@
                     {
                       "word": "hospital",
                       "edit_distance": 1,
-                      "confidence": 0.30365527486089094,
-                      "reason": "1 char difference"
+                      "confidence": 0.22687406367492235,
+                      "reason": "1 edit",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "hospital"
                 },
                 {
-                  "original": "show",
+                  "original": "previus",
                   "suggestions": [
                     {
-                      "word": "showed",
-                      "edit_distance": 2,
-                      "confidence": 0.500154315453304,
-                      "reason": "2 char difference"
+                      "word": "previous",
+                      "edit_distance": 1,
+                      "confidence": 0.3015055139448229,
+                      "reason": "1 edit, fits context",
+                      "source": "enchant"
                     },
                     {
-                      "word": "she",
+                      "word": "previews",
                       "edit_distance": 2,
-                      "confidence": 0.25365576451047595,
-                      "reason": "2 char difference"
-                    },
-                    {
-                      "word": "soon",
-                      "edit_distance": 2,
-                      "confidence": 0.25365576451047595,
-                      "reason": "2 char difference"
+                      "confidence": 0.2515055139448229,
+                      "reason": "fits context",
+                      "source": "enchant"
                     }
                   ],
-                  "top_correction": "showed"
+                  "top_correction": "previous"
                 },
                 {
                   "original": "treamtent",
@@ -885,8 +886,9 @@
                     {
                       "word": "treatment",
                       "edit_distance": 1,
-                      "confidence": 0.566361172795363,
-                      "reason": "1 char difference, common word"
+                      "confidence": 0.7000000000000001,
+                      "reason": "1 edit, common, fits context",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "treatment"
@@ -896,8 +898,8 @@
             },
             {
               "original": "Their symtoms have improved signficantly",
-              "corrected": "Their symptoms are improved significantly",
-              "errors_found": 3,
+              "corrected": "Their symptoms have improved significantly",
+              "errors_found": 2,
               "corrections": [
                 {
                   "original": "symtoms",
@@ -906,40 +908,25 @@
                       "word": "symptoms",
                       "edit_distance": 1,
                       "confidence": 0.5575866843190049,
-                      "reason": "1 char difference, common word"
+                      "reason": "1 edit, common",
+                      "source": "enchant"
                     },
                     {
-                      "word": "symptom",
-                      "edit_distance": 2,
-                      "confidence": 0.163304603382846,
-                      "reason": "2 char difference"
+                      "word": "sym toms",
+                      "edit_distance": 1,
+                      "confidence": 0.1515621615753518,
+                      "reason": "1 edit",
+                      "source": "enchant"
+                    },
+                    {
+                      "word": "sym-toms",
+                      "edit_distance": 1,
+                      "confidence": 0.1515621615753518,
+                      "reason": "1 edit",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "symptoms"
-                },
-                {
-                  "original": "have",
-                  "suggestions": [
-                    {
-                      "word": "are",
-                      "edit_distance": 2,
-                      "confidence": 0.40423974520124645,
-                      "reason": "2 char difference"
-                    },
-                    {
-                      "word": "take",
-                      "edit_distance": 2,
-                      "confidence": 0.40423974520124645,
-                      "reason": "2 char difference"
-                    },
-                    {
-                      "word": "has",
-                      "edit_distance": 2,
-                      "confidence": 0.3741228493798405,
-                      "reason": "2 char difference"
-                    }
-                  ],
-                  "top_correction": "are"
                 },
                 {
                   "original": "signficantly",
@@ -947,8 +934,9 @@
                     {
                       "word": "significantly",
                       "edit_distance": 1,
-                      "confidence": 0.3638893822793109,
-                      "reason": "1 char difference"
+                      "confidence": 0.256997892196884,
+                      "reason": "1 edit",
+                      "source": "enchant"
                     }
                   ],
                   "top_correction": "significantly"
@@ -960,18 +948,18 @@
         }
       ],
       "total_tests": 16,
-      "total_errors_detected": 29
+      "total_errors_detected": 23
     },
     "performance_metrics": {
-      "average_response_time_ms": 9126.422357559204,
-      "min_response_time_ms": 1292.712926864624,
-      "max_response_time_ms": 13025.502443313599,
+      "average_response_time_ms": 21.420621871948242,
+      "min_response_time_ms": 4.8160552978515625,
+      "max_response_time_ms": 37.15705871582031,
       "suggestions_per_query": 5,
       "cache_enabled": true,
       "real_time_checking": true,
       "scalability": {
-        "vocabulary_size": 3552,
-        "bigram_coverage": 20101,
+        "vocabulary_size": 238062,
+        "bigram_coverage": 20120,
         "memory_efficient": true
       }
     },
@@ -1021,8 +1009,8 @@
     },
     "suggestion_quality": {
       "ranking_algorithm": "Edit distance + Frequency + Context",
-      "top_suggestion_accuracy": 0.5,
-      "top_3_accuracy": 0.5,
+      "top_suggestion_accuracy": 0.75,
+      "top_3_accuracy": 1.0,
       "max_suggestions": 5,
       "suggestion_tests": [
         {
@@ -1030,21 +1018,26 @@
           "expected_top": "the",
           "actual_suggestions": [
             "the",
-            "we",
-            "then"
+            "ter",
+            "tee"
           ],
           "top_suggestion_correct": true,
           "correct_in_top_3": true,
           "suggestion_quality": {
             "edit_distances": [
               1,
-              2,
-              2
+              1,
+              1
             ],
             "confidences": [
-              0.5511765591478791,
-              0.5003409989085024,
-              0.5003409989085024
+              0.7000000000000001,
+              0.3015055139448229,
+              0.3015055139448229
+            ],
+            "sources": [
+              "enchant",
+              "enchant",
+              "enchant"
             ]
           }
         },
@@ -1052,19 +1045,27 @@
           "input": "speling",
           "expected_top": "spelling",
           "actual_suggestions": [
-            "feeling",
-            "swelling"
+            "spewing",
+            "spieling",
+            "spelling"
           ],
           "top_suggestion_correct": false,
-          "correct_in_top_3": false,
+          "correct_in_top_3": true,
           "suggestion_quality": {
             "edit_distances": [
-              2,
-              2
+              1,
+              1,
+              1
             ],
             "confidences": [
-              0.25367759418871616,
-              0.1632790093718243
+              0.3015055139448229,
+              0.3015055139448229,
+              0.3015055139448229
+            ],
+            "sources": [
+              "enchant",
+              "enchant",
+              "enchant"
             ]
           }
         },
@@ -1072,16 +1073,23 @@
           "input": "patiant",
           "expected_top": "patient",
           "actual_suggestions": [
-            "patient"
+            "patient",
+            "patin"
           ],
           "top_suggestion_correct": true,
           "correct_in_top_3": true,
           "suggestion_quality": {
             "edit_distances": [
-              1
+              1,
+              2
             ],
             "confidences": [
-              0.5683710339117016
+              0.7000000000000001,
+              0.2515055139448229
+            ],
+            "sources": [
+              "enchant",
+              "enchant"
             ]
           }
         },
@@ -1089,16 +1097,23 @@
           "input": "recieve",
           "expected_top": "receive",
           "actual_suggestions": [
-            "received"
+            "receive",
+            "relieve"
           ],
-          "top_suggestion_correct": false,
-          "correct_in_top_3": false,
+          "top_suggestion_correct": true,
+          "correct_in_top_3": true,
           "suggestion_quality": {
             "edit_distances": [
-              2
+              1,
+              1
             ],
             "confidences": [
-              0.22354473258308555
+              0.3015055139448229,
+              0.3015055139448229
+            ],
+            "sources": [
+              "enchant",
+              "enchant"
             ]
           }
         }
@@ -1206,7 +1221,7 @@
         "language_model": {
           "type": "Bigram with Laplace smoothing",
           "probability_calculation": "P(w2|w1) with smoothing",
-          "vocabulary_size": 3552
+          "vocabulary_size": 238062
         },
         "suggestion_ranking": {
           "formula": "0.3*edit_score + 0.4*freq_score + 0.3*context_score",
@@ -1229,6 +1244,9 @@
         "re (regex)",
         "collections (Counter, defaultdict)",
         "pickle (serialization)"
+      ],
+      "optional_libraries": [
+        "pyenchant (optional, improves dictionary suggestions)"
       ],
       "corpus_source": "Medical transcriptions (100,000+ words)",
       "meets_requirements": {

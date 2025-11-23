@@ -246,6 +246,7 @@ class Suggestion:
     confidence: float
     context_score: float
     reason: str = ""  # Human-friendly reason explaining why this suggestion was chosen
+    source: str = "corpus"  # source: 'enchant' or 'corpus' or 'realword'
 
     def __lt__(self, other):
         # Standard ascending order (lowest confidence first); callers use reverse=True
@@ -877,7 +878,7 @@ class SmartSuggestionService:
             alt = self.realword_detector.check_confusion(word_lower, prev_word, next_word, self.language_model)
             if alt and alt in vocabulary:
                 reason = f"real-word confusion: '{word_lower}' -> '{alt}'"
-                sugg = Suggestion(original=word, corrected=alt, edit_distance=1, confidence=0.90, context_score=0.95, reason=reason)
+                sugg = Suggestion(original=word, corrected=alt, edit_distance=1, confidence=0.90, context_score=0.95, reason=reason, source='realword')
                 return [sugg]
 
         # Generate candidate words
@@ -932,6 +933,7 @@ class SmartSuggestionService:
                 confidence=confidence,
                 context_score=context_score
                 , reason=", ".join(reasons)
+                , source='corpus'
             ))
         
         # Sort by confidence and return top N
@@ -1173,7 +1175,7 @@ class AdvancedSpellChecker(ISpellChecker):
                 return [Suggestion(
                     original=word, corrected=alt, edit_distance=1,
                     confidence=0.92, context_score=0.95,
-                    reason=f"confusion: {word_lower}→{alt}"
+                    reason=f"confusion: {word_lower}→{alt}", source='realword'
                 )]
             return []
         
@@ -1188,8 +1190,15 @@ class AdvancedSpellChecker(ISpellChecker):
             edit_cands = self._generate_edit_candidates(word_lower)
             candidates.update(edit_cands)
         
-        # Rank and return
-        return self._rank_suggestions(word, candidates, prev_word, next_word)
+        # Generate candidate sources mapping: enchant vs corpus
+        candidate_sources = {}
+        for c in enchant_sugg:
+            candidate_sources[c.lower()] = 'enchant'
+        for c in candidates:
+            candidate_sources.setdefault(c.lower(), 'corpus')
+
+        # Rank and return (pass source map)
+        return self._rank_suggestions(word, candidates, prev_word, next_word, candidate_sources)
     
     def get_all_words_sorted(self) -> List[Tuple[str, int]]:
         """Get sorted list of all words with frequencies"""
@@ -1268,7 +1277,8 @@ class AdvancedSpellChecker(ISpellChecker):
         return candidates
 
     def _rank_suggestions(self, original: str, candidates: Set[str],
-                         prev_word: Optional[str], next_word: Optional[str]) -> List[Suggestion]:
+                         prev_word: Optional[str], next_word: Optional[str],
+                         candidate_sources: Optional[Dict[str, str]] = None) -> List[Suggestion]:
         """Rank suggestions"""
         suggestions = []
         
@@ -1319,6 +1329,7 @@ class AdvancedSpellChecker(ISpellChecker):
                 original=original, corrected=candidate, edit_distance=edit_dist,
                 confidence=confidence, context_score=context_score,
                 reason=", ".join(reasons) if reasons else "dictionary match"
+                , source=(candidate_sources.get(candidate.lower()) if candidate_sources else 'corpus')
             ))
         
         suggestions.sort(reverse=True)

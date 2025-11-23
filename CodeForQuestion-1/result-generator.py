@@ -50,6 +50,13 @@ class SpellingCorrectionResultsGenerator:
             'gui_features': {},
             'implementation_details': {}
         }
+        # Suggestion source counters
+        self.suggestion_source_counts = {
+            'enchant': 0,
+            'corpus': 0,
+            'realword': 0,
+            'unknown': 0
+        }
     
     def generate_comprehensive_results(self):
         """Generate all results"""
@@ -209,11 +216,22 @@ class SpellingCorrectionResultsGenerator:
             ('Where are they going', None),  # Correct
         ]
         
+        # Determine whether hybrid dictionary (Enchanct/NLTK/medical) is active
+        enchant_installed = False
+        if hasattr(spell_checker, 'dictionary') and spell_checker.dictionary:
+            enchant_installed = getattr(spell_checker.dictionary, 'enchant_dict', None) is not None
+
         non_word_results = []
         for wrong, expected in non_word_tests:
             suggestions = spell_checker.get_suggestions(wrong, "")
             detected = not spell_checker.check_word(wrong)
             corrected = suggestions[0].corrected if suggestions else wrong
+            source = suggestions[0].source if suggestions and hasattr(suggestions[0], 'source') else 'unknown'
+            # tally source
+            if source in self.suggestion_source_counts:
+                self.suggestion_source_counts[source] += 1
+            else:
+                self.suggestion_source_counts['unknown'] += 1
             
             non_word_results.append({
                 'input': wrong,
@@ -223,7 +241,8 @@ class SpellingCorrectionResultsGenerator:
                 'top_suggestion': corrected,
                 'correct': corrected.lower() == expected.lower(),
                 'edit_distance': suggestions[0].edit_distance if suggestions else -1,
-                'confidence': suggestions[0].confidence if suggestions else 0
+                'confidence': suggestions[0].confidence if suggestions else 0,
+                'source': source
             })
         
         real_word_results = []
@@ -255,6 +274,7 @@ class SpellingCorrectionResultsGenerator:
                 'correction_accuracy': sum(1 for r in non_word_results if r['correct']) / len(non_word_tests),
                 'results': non_word_results
             },
+            'hybrid_dictionary_enabled': enchant_installed,
             'real_word_detection': {
                 'test_count': len(real_word_tests),
                 'detection_rate': sum(1 for r in real_word_results if r['detection_successful']) / len(real_word_tests),
@@ -272,6 +292,8 @@ class SpellingCorrectionResultsGenerator:
                 'laplace_smoothing': True
             }
         }
+        # Add source counts summary
+        self.results['system_capabilities']['suggestion_source_counts'] = self.suggestion_source_counts
         
         print(f"   Non-word detection: {self.results['system_capabilities']['non_word_detection']['detection_rate']*100:.1f}%")
         print(f"   Correction accuracy: {self.results['system_capabilities']['non_word_detection']['correction_accuracy']*100:.1f}%")
@@ -341,11 +363,19 @@ class SpellingCorrectionResultsGenerator:
                                         'word': s.corrected,
                                         'edit_distance': s.edit_distance,
                                         'confidence': s.confidence,
-                                        'reason': s.reason if hasattr(s, 'reason') else ''
+                                        'reason': s.reason if hasattr(s, 'reason') else '',
+                                        'source': s.source if hasattr(s, 'source') else 'unknown'
                                     } for s in suggestions[:3]
                                 ],
                                 'top_correction': suggestions[0].corrected
                             })
+                            # count suggestion sources
+                            for s in suggestions[:3]:
+                                src = s.source if hasattr(s, 'source') else 'unknown'
+                                if src in self.suggestion_source_counts:
+                                    self.suggestion_source_counts[src] += 1
+                                else:
+                                    self.suggestion_source_counts['unknown'] += 1
                 
                 # Generate corrected text
                 corrected_text = test_text
@@ -393,6 +423,7 @@ class SpellingCorrectionResultsGenerator:
             suggestions = spell_checker.get_suggestions(word, "")
             times.append(time.time() - start)
         
+        total_vocab = self.results.get('corpus_analysis', {}).get('total_vocabulary_size', len(spell_checker.vocabulary))
         self.results['performance_metrics'] = {
             'average_response_time_ms': sum(times) / len(times) * 1000,
             'min_response_time_ms': min(times) * 1000,
@@ -401,7 +432,7 @@ class SpellingCorrectionResultsGenerator:
             'cache_enabled': True,
             'real_time_checking': True,
             'scalability': {
-                'vocabulary_size': len(spell_checker.vocabulary),
+                'vocabulary_size': total_vocab,
                 'bigram_coverage': len(spell_checker.language_model.bigram_freq),
                 'memory_efficient': True
             }
@@ -475,9 +506,17 @@ class SpellingCorrectionResultsGenerator:
                 'correct_in_top_3': in_top_3,
                 'suggestion_quality': {
                     'edit_distances': [s.edit_distance for s in suggestions[:3]],
-                    'confidences': [s.confidence for s in suggestions[:3]]
+                    'confidences': [s.confidence for s in suggestions[:3]],
+                    'sources': [s.source if hasattr(s, 'source') else 'unknown' for s in suggestions[:3]]
                 }
             })
+            # tally sources as well
+            for s in suggestions[:3]:
+                src = s.source if hasattr(s, 'source') else 'unknown'
+                if src in self.suggestion_source_counts:
+                    self.suggestion_source_counts[src] += 1
+                else:
+                    self.suggestion_source_counts['unknown'] += 1
         
         top_accuracy = sum(1 for r in suggestion_results if r['top_suggestion_correct']) / len(suggestion_results)
         top3_accuracy = sum(1 for r in suggestion_results if r['correct_in_top_3']) / len(suggestion_results)
@@ -607,7 +646,7 @@ class SpellingCorrectionResultsGenerator:
                 'language_model': {
                     'type': 'Bigram with Laplace smoothing',
                     'probability_calculation': 'P(w2|w1) with smoothing',
-                    'vocabulary_size': len(spell_checker.vocabulary)
+                    'vocabulary_size': self.results.get('corpus_analysis', {}).get('total_vocabulary_size', len(spell_checker.vocabulary))
                 },
                 'suggestion_ranking': {
                     'formula': '0.3*edit_score + 0.4*freq_score + 0.3*context_score',
@@ -627,6 +666,9 @@ class SpellingCorrectionResultsGenerator:
                 'collections (Counter, defaultdict)',
                 'pickle (serialization)'
             ],
+            'optional_libraries': [
+                'pyenchant (optional, improves dictionary suggestions)'
+            ],
             'corpus_source': 'Medical transcriptions (100,000+ words)',
             'meets_requirements': {
                 'corpus_size': True,
@@ -644,6 +686,11 @@ class SpellingCorrectionResultsGenerator:
     
     def _save_results(self):
         """Save all results to files"""
+        # Finalize aggregated suggestion source counts
+        try:
+            self.results['system_capabilities']['suggestion_source_counts'] = self.suggestion_source_counts
+        except Exception:
+            pass
         
         # Main results file
         with open(os.path.join(self.results_dir, 'spelling_correction_results.json'), 'w') as f:
