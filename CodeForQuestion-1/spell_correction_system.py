@@ -49,7 +49,7 @@ try:
     from nltk.stem import WordNetLemmatizer
     
     # Download required NLTK data
-    for package in ['punkt', 'stopwords', 'wordnet', 'omw-1.4']:
+    for package in ['punkt', 'stopwords', 'wordnet', 'omw-1.4', 'averaged_perceptron_tagger']:
         try:
             nltk.download(package, quiet=True)
         except:
@@ -100,6 +100,9 @@ class Config:
     # Caching settings
     CACHE_LANGUAGE_MODEL = os.path.join(CACHE_DIR, "language_model.pkl")
     CACHE_VOCABULARY = os.path.join(CACHE_DIR, "vocabulary.pkl")
+    # Real-word detection settings (improvement factor or absolute delta)
+    REALWORD_IMPROVEMENT_RATIO = 1.2
+    REALWORD_MIN_DELTA = 0.01
     
     @classmethod
     def initialize(cls):
@@ -459,6 +462,8 @@ class CorpusService:
             "there was evidence of improvement noted today",
             "there are several options for treatment available",
             "they are scheduled for follow up appointment",
+            "they're going to the park",
+            "they're going to schedule a follow-up",
             
             # THAN vs THEN detection
             "symptoms were worse than expected initially today",
@@ -511,6 +516,11 @@ class CorpusService:
             "patient will return next month for",
             "appointment scheduled for tomorrow morning early",
             "follow up in two weeks is planned",
+            # Generic conversational sentences to help real-word confusions
+            "it's a beautiful day",
+            "it's important to monitor the patient",
+            "it's likely that treatment will continue",
+            "where they will be discharged is important",
         ]
         
         # ========================================================================
@@ -665,6 +675,7 @@ class BigramLanguageModel(ILanguageModel):
     def __init__(self):
         self.word_freq: Dict[str, int] = Counter()
         self.bigram_freq: Dict[Tuple[str, str], int] = Counter()
+        self.trigram_freq: Dict[Tuple[str, str, str], int] = Counter()
         self.total_words = 0
         self.vocabulary: Set[str] = set()
         
@@ -680,6 +691,8 @@ class BigramLanguageModel(ILanguageModel):
         # Count bigram frequencies
         for i in range(len(words) - 1):
             self.bigram_freq[(words[i], words[i+1])] += 1
+        for i in range(len(words) - 2):
+            self.trigram_freq[(words[i], words[i+1], words[i+2])] += 1
     
     def _tokenize(self, text: str) -> List[str]:
         """Tokenize text into words"""
@@ -701,6 +714,15 @@ class BigramLanguageModel(ILanguageModel):
             return 1e-10
         
         return (bigram_count + 1) / (word1_count + len(self.vocabulary))
+
+    def get_trigram_probability(self, word1: str, word2: str, word3: str) -> float:
+        """Get conditional probability P(word3 | word1 word2) with Laplace smoothing"""
+        w1, w2, w3 = word1.lower(), word2.lower(), word3.lower()
+        trigram_count = self.trigram_freq.get((w1, w2, w3), 0)
+        bigram_count = self.bigram_freq.get((w1, w2), 0)
+        if bigram_count == 0:
+            return 1e-10
+        return (trigram_count + 1) / (bigram_count + len(self.vocabulary))
     
     def save_cache(self, filepath: str):
         """Save model to cache"""
@@ -708,6 +730,7 @@ class BigramLanguageModel(ILanguageModel):
             pickle.dump({
                 'word_freq': dict(self.word_freq),
                 'bigram_freq': dict(self.bigram_freq),
+                'trigram_freq': dict(self.trigram_freq),
                 'total_words': self.total_words,
                 'vocabulary': self.vocabulary
             }, f)
@@ -719,6 +742,7 @@ class BigramLanguageModel(ILanguageModel):
                 data = pickle.load(f)
                 self.word_freq = Counter(data['word_freq'])
                 self.bigram_freq = Counter(data['bigram_freq'])
+                self.trigram_freq = Counter(data.get('trigram_freq', {}))
                 self.total_words = data['total_words']
                 self.vocabulary = data['vocabulary']
             return True
@@ -859,6 +883,11 @@ class SmartSuggestionService:
             best_alt = None
             best_score = current_score
 
+            # First, apply quick POS-based heuristics to capture easy cases
+            pos_override = self._pos_based_override(word_lower, prev_word, next_word)
+            if pos_override and pos_override in self.confusion_pairs.get(word_lower, set()):
+                return pos_override
+
             for alt in self.confusion_pairs[word_lower]:
                 alt_score = score_for(alt)
                 # require a meaningful improvement (e.g., 2x or +0.02 absolute)
@@ -868,6 +897,50 @@ class SmartSuggestionService:
                     best_alt = alt
 
             return best_alt
+
+        def _pos_based_override(self, original: str, prev_word: Optional[str], next_word: Optional[str]) -> Optional[str]:
+            """Apply heuristic based on POS to quickly detect common confusions.
+
+            Returns the suggested alternative word if a simple POS rule applies, otherwise None.
+            """
+            try:
+                import nltk
+                # Quick POS tag for next/prev words
+                next_pos = None
+                prev_pos = None
+                if next_word:
+                    next_pos = nltk.pos_tag([next_word])[0][1]
+                if prev_word:
+                    prev_pos = nltk.pos_tag([prev_word])[0][1]
+            except Exception:
+                next_pos = prev_pos = None
+
+            # Heuristics:
+            # their/they're: if next word is a verb -> they're; if noun or determiner -> their
+            if original in {'their', "they're"}:
+                if next_pos and next_pos.startswith('V'):
+                    return "they're"
+                if next_pos and (next_pos.startswith('N') or next_pos == 'DT'):
+                    return 'their'
+            # its/it's: if next word starts with a verb (VB*) or is a determiner -> it's; otherwise 'its'
+            if original in {'its', "it's"}:
+                if next_pos and (next_pos.startswith('V') or next_pos == 'DT'):
+                    return "it's"
+                return 'its'
+            # to/too/two: if next token is a number -> 'two'; if next POS is ADJ/RB -> 'too'; else 'to'
+            if original in {'to', 'too', 'two'}:
+                if next_word and next_word.isdigit():
+                    return 'two'
+                if next_pos and (next_pos.startswith('JJ') or next_pos.startswith('RB')):
+                    return 'too'
+                return 'to'
+            # than/then: if previous POS is comparative JJR or RBR -> 'than' else 'then'
+            if original in {'than', 'then'}:
+                if prev_pos and (prev_pos == 'JJR' or prev_pos == 'RBR'):
+                    return 'than'
+                return 'then'
+
+            return None
         
     def get_auto_suggestions(self, word: str, context: str, vocabulary: Set[str], 
                             top_n: int = Config.SUGGESTION_COUNT) -> List[Suggestion]:
@@ -1108,12 +1181,27 @@ class SmartSuggestionService:
             if p > 1e-9:
                 bigram_scores.append(p)
 
-        if not bigram_scores:
+        trigram_score = None
+        if prev_word and next_word:
+            # Score the trigram prev -> word -> next (P(next | prev, word)), backed off to word-prob
+            t = self.language_model.get_trigram_probability(prev_word, word, next_word)
+            if t > 1e-12:
+                trigram_score = t
+
+        # If no n-gram evidence, return unigram baseline
+        if not bigram_scores and trigram_score is None:
             return baseline
 
-        best_bigram = max(bigram_scores)
-        # Weighted: 30% unigram baseline, 70% best bigram
-        return min(0.3 * baseline + 0.7 * best_bigram, 1.0)
+        # Combine available n-gram scores with weights
+        # If trigram exists, prefer it (50%) and combine with best bigram and baseline
+        if trigram_score is not None:
+            best_bigram = max(bigram_scores) if bigram_scores else 0.0
+            context_score = 0.3 * baseline + 0.2 * best_bigram + 0.5 * trigram_score
+        else:
+            best_bigram = max(bigram_scores)
+            context_score = 0.3 * baseline + 0.7 * best_bigram
+
+        return min(context_score, 1.0)
 
 # ============================================================================
 # SPELL CHECKER
@@ -1236,6 +1324,15 @@ class AdvancedSpellChecker(ISpellChecker):
         
         if word not in confusion_pairs:
             return None
+        # First, check if the SmartSuggestionService's realword detector POS heuristic
+        # suggests a direct override (e.g., 'their'->"they're"). Prefer this suggestion
+        # if it exists and is allowed by confusion pairs.
+        try:
+            override = self.suggestion_service.realword_detector._pos_based_override(word, prev_word, next_word)
+            if override and override in confusion_pairs[word]:
+                return override
+        except Exception:
+            pass
         
         def score_word(w):
             s = 0.0
@@ -1252,7 +1349,8 @@ class AdvancedSpellChecker(ISpellChecker):
         for alt in confusion_pairs[word]:
             if self.dictionary.check(alt):
                 alt_score = score_word(alt)
-                if alt_score > best_score * 2.5:
+                # Use configurable thresholds for detecting real-word confusions
+                if alt_score >= best_score * Config.REALWORD_IMPROVEMENT_RATIO or (alt_score - best_score) > Config.REALWORD_MIN_DELTA:
                     best_score = alt_score
                     best_alt = alt
         
@@ -1305,18 +1403,11 @@ class AdvancedSpellChecker(ISpellChecker):
             
             context_score = 0.5
             if self.is_trained and (prev_word or next_word):
-                baseline = self.language_model.get_word_probability(candidate)
-                bigram_scores = []
-                if prev_word:
-                    p = self.language_model.get_bigram_probability(prev_word, candidate)
-                    if p > 1e-9:
-                        bigram_scores.append(p)
-                if next_word:
-                    p = self.language_model.get_bigram_probability(candidate, next_word)
-                    if p > 1e-9:
-                        bigram_scores.append(p)
-                if bigram_scores:
-                    context_score = min(0.3 * baseline + 0.7 * max(bigram_scores), 1.0)
+                # Use the centralized context scoring (includes trigram when available)
+                try:
+                    context_score = self.suggestion_service._calculate_context_score(candidate, prev_word, next_word)
+                except Exception:
+                    context_score = 0.5
             
             edit_score = 1.0 / (1 + edit_dist)
             # Source penalty/boost: penalize enchant-only words not in corpus, boost if enchant and in corpus

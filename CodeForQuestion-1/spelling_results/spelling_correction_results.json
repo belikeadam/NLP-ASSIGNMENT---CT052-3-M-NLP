@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated_at": "2025-11-23T12:08:49.724678",
+    "generated_at": "2025-11-23T12:29:02.046460",
     "system": "Advanced Spelling Correction System",
     "assignment": "NLP - Part A, Question 1"
   },
@@ -116,8 +116,8 @@
           "detected": true,
           "suggestions": [
             "the",
-            "tech",
-            "teth"
+            "teth",
+            "tech"
           ],
           "top_suggestion": "the",
           "correct": true,
@@ -175,8 +175,8 @@
           "detected": true,
           "suggestions": [
             "separate",
-            "temperate",
-            "desperate"
+            "desperate",
+            "temperate"
           ],
           "top_suggestion": "separate",
           "correct": true,
@@ -257,31 +257,59 @@
     "hybrid_dictionary_enabled": true,
     "real_word_detection": {
       "test_count": 5,
-      "detection_rate": 0.2,
+      "detection_rate": 1.0,
       "results": [
         {
           "context": "I will go too the store",
           "expected_correction": "to",
-          "errors_detected": [],
-          "detection_successful": false
+          "errors_detected": [
+            {
+              "word": "too",
+              "suggestion": "to",
+              "confidence": 0.92,
+              "source": "realword"
+            }
+          ],
+          "detection_successful": true
         },
         {
           "context": "Their going to the park",
           "expected_correction": "They're",
-          "errors_detected": [],
-          "detection_successful": false
+          "errors_detected": [
+            {
+              "word": "Their",
+              "suggestion": "they're",
+              "confidence": 0.92,
+              "source": "realword"
+            }
+          ],
+          "detection_successful": true
         },
         {
           "context": "Its a beautiful day",
           "expected_correction": "It's",
-          "errors_detected": [],
-          "detection_successful": false
+          "errors_detected": [
+            {
+              "word": "Its",
+              "suggestion": "it's",
+              "confidence": 0.92,
+              "source": "realword"
+            }
+          ],
+          "detection_successful": true
         },
         {
           "context": "He is better then me",
           "expected_correction": "than",
-          "errors_detected": [],
-          "detection_successful": false
+          "errors_detected": [
+            {
+              "word": "then",
+              "suggestion": "than",
+              "confidence": 0.92,
+              "source": "realword"
+            }
+          ],
+          "detection_successful": true
         },
         {
           "context": "Where are they going",
@@ -305,7 +333,7 @@
     "suggestion_source_counts": {
       "enchant": 60,
       "corpus": 0,
-      "realword": 0,
+      "realword": 8,
       "unknown": 0
     }
   },
@@ -327,14 +355,14 @@
                   {
                     "word": "patient",
                     "edit_distance": 1,
-                    "confidence": 0.7909986102015768,
+                    "confidence": 0.7891615700394315,
                     "reason": "1 edit, common",
                     "source": "enchant"
                   },
                   {
                     "word": "patin",
                     "edit_distance": 2,
-                    "confidence": 0.25155776313533185,
+                    "confidence": 0.25152092621516486,
                     "reason": "dictionary match",
                     "source": "enchant"
                   }
@@ -347,7 +375,7 @@
                   {
                     "word": "symptom",
                     "edit_distance": 1,
-                    "confidence": 0.42245804131079556,
+                    "confidence": 0.42241604804472055,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -368,7 +396,7 @@
                   {
                     "word": "medicine",
                     "edit_distance": 1,
-                    "confidence": 0.31355776313533185,
+                    "confidence": 0.31352092621516486,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -381,7 +409,7 @@
                   {
                     "word": "administered",
                     "edit_distance": 1,
-                    "confidence": 0.42168881054156476,
+                    "confidence": 0.42164681727548975,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -415,15 +443,15 @@
                   {
                     "word": "immediately",
                     "edit_distance": 1,
-                    "confidence": 0.586122064919912,
-                    "reason": "1 edit, fits context",
+                    "confidence": 0.43625981944586334,
+                    "reason": "1 edit",
                     "source": "enchant"
                   },
                   {
                     "word": "mediately",
                     "edit_distance": 1,
-                    "confidence": 0.41518972447113867,
-                    "reason": "1 edit, fits context",
+                    "confidence": 0.2651919827420559,
+                    "reason": "1 edit",
                     "source": "enchant"
                   }
                 ],
@@ -443,7 +471,7 @@
                   {
                     "word": "treatment",
                     "edit_distance": 1,
-                    "confidence": 0.7967837611378886,
+                    "confidence": 0.7931043040704691,
                     "reason": "1 edit, common",
                     "source": "enchant"
                   }
@@ -484,15 +512,15 @@
                   {
                     "word": "patent",
                     "edit_distance": 1,
-                    "confidence": 0.46227474471405366,
-                    "reason": "1 edit, fits context",
+                    "confidence": 0.3122770029849709,
+                    "reason": "1 edit",
                     "source": "enchant"
                   },
                   {
                     "word": "paint",
                     "edit_distance": 2,
-                    "confidence": 0.3515055139448229,
-                    "reason": "fits context",
+                    "confidence": 0.20150777221574015,
+                    "reason": "dictionary match",
                     "source": "enchant"
                   }
                 ],
@@ -526,21 +554,49 @@
       {
         "category": "Real-Word Errors",
         "test_count": 4,
-        "total_errors_found": 0,
+        "total_errors_found": 2,
         "results": [
           {
             "original": "The patient was taken too the emergency room",
-            "corrected": "The patient was taken too the emergency room",
-            "errors_found": 0,
-            "corrections": [],
-            "fully_corrected": false
+            "corrected": "The patient was taken to the emergency room",
+            "errors_found": 1,
+            "corrections": [
+              {
+                "original": "too",
+                "suggestions": [
+                  {
+                    "word": "to",
+                    "edit_distance": 1,
+                    "confidence": 0.92,
+                    "reason": "confusion: too\u2192to",
+                    "source": "realword"
+                  }
+                ],
+                "top_correction": "to"
+              }
+            ],
+            "fully_corrected": true
           },
           {
             "original": "Their going to schedule a follow-up",
-            "corrected": "Their going to schedule a follow-up",
-            "errors_found": 0,
-            "corrections": [],
-            "fully_corrected": false
+            "corrected": "they're going to schedule a follow-up",
+            "errors_found": 1,
+            "corrections": [
+              {
+                "original": "Their",
+                "suggestions": [
+                  {
+                    "word": "they're",
+                    "edit_distance": 1,
+                    "confidence": 0.92,
+                    "reason": "confusion: their\u2192they're",
+                    "source": "realword"
+                  }
+                ],
+                "top_correction": "they're"
+              }
+            ],
+            "fully_corrected": true
           },
           {
             "original": "The medication should be taken everyday",
@@ -691,17 +747,17 @@
                     "source": "enchant"
                   },
                   {
-                    "word": "th",
+                    "word": "te",
                     "edit_distance": 1,
-                    "confidence": 0.3975055139448229,
-                    "reason": "1 edit, fits context",
+                    "confidence": 0.24750777221574013,
+                    "reason": "1 edit",
                     "source": "enchant"
                   },
                   {
                     "word": "eh",
                     "edit_distance": 1,
-                    "confidence": 0.3975055139448229,
-                    "reason": "1 edit, fits context",
+                    "confidence": 0.24750777221574013,
+                    "reason": "1 edit",
                     "source": "enchant"
                   }
                 ],
@@ -713,15 +769,15 @@
                   {
                     "word": "patient",
                     "edit_distance": 1,
-                    "confidence": 0.7891052320825104,
+                    "confidence": 0.788578961346184,
                     "reason": "1 edit, common",
                     "source": "enchant"
                   },
                   {
                     "word": "patin",
                     "edit_distance": 2,
-                    "confidence": 0.4015055139448229,
-                    "reason": "fits context",
+                    "confidence": 0.2515061914410981,
+                    "reason": "dictionary match",
                     "source": "enchant"
                   }
                 ],
@@ -733,21 +789,21 @@
                   {
                     "word": "diagnosed",
                     "edit_distance": 1,
-                    "confidence": 0.9352375982509735,
-                    "reason": "1 edit, common, fits context",
+                    "confidence": 0.8368709832989321,
+                    "reason": "1 edit, common",
                     "source": "enchant"
                   },
                   {
                     "word": "diagnosis",
                     "edit_distance": 2,
-                    "confidence": 0.3605123399533295,
+                    "confidence": 0.3604703466872545,
                     "reason": "dictionary match",
                     "source": "enchant"
                   },
                   {
                     "word": "diagnose",
                     "edit_distance": 1,
-                    "confidence": 0.3065644923700181,
+                    "confidence": 0.3065228488536466,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -808,15 +864,15 @@
                   {
                     "word": "previous",
                     "edit_distance": 1,
-                    "confidence": 0.46350551394482287,
-                    "reason": "1 edit, fits context",
+                    "confidence": 0.31350619144109804,
+                    "reason": "1 edit",
                     "source": "enchant"
                   },
                   {
                     "word": "previews",
                     "edit_distance": 2,
-                    "confidence": 0.3975055139448229,
-                    "reason": "fits context",
+                    "confidence": 0.24750619144109806,
+                    "reason": "dictionary match",
                     "source": "enchant"
                   }
                 ],
@@ -828,8 +884,8 @@
                   {
                     "word": "treatment",
                     "edit_distance": 1,
-                    "confidence": 0.9366666666666668,
-                    "reason": "1 edit, common, fits context",
+                    "confidence": 0.8030278394620297,
+                    "reason": "1 edit, common",
                     "source": "enchant"
                   }
                 ],
@@ -849,14 +905,14 @@
                   {
                     "word": "symptoms",
                     "edit_distance": 1,
-                    "confidence": 0.7995866843190049,
+                    "confidence": 0.797589415270419,
                     "reason": "1 edit, common",
                     "source": "enchant"
                   },
                   {
                     "word": "symptom",
                     "edit_distance": 2,
-                    "confidence": 0.36454595339870766,
+                    "confidence": 0.36450396013263264,
                     "reason": "dictionary match",
                     "source": "enchant"
                   }
@@ -883,12 +939,12 @@
       }
     ],
     "total_tests": 16,
-    "total_errors_detected": 23
+    "total_errors_detected": 25
   },
   "performance_metrics": {
-    "average_response_time_ms": 21.2127685546875,
-    "min_response_time_ms": 4.820823669433594,
-    "max_response_time_ms": 37.149667739868164,
+    "average_response_time_ms": 20.8005428314209,
+    "min_response_time_ms": 5.93876838684082,
+    "max_response_time_ms": 36.68069839477539,
     "suggestions_per_query": 5,
     "cache_enabled": true,
     "real_time_checking": true,
@@ -953,8 +1009,8 @@
         "expected_top": "the",
         "actual_suggestions": [
           "the",
-          "tech",
-          "teth"
+          "teth",
+          "tech"
         ],
         "top_suggestion_correct": true,
         "correct_in_top_3": true,

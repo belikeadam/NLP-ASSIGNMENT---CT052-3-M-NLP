@@ -246,25 +246,49 @@ class SpellingCorrectionResultsGenerator:
             })
         
         real_word_results = []
+        # For real-word detection we must check suggestions even if the word is spelled correctly.
+        # The spell checker returns real-word confusion suggestions with source 'realword'.
         for context, expected in real_word_tests:
             words = re.findall(r'\b\w+\b', context)
             errors_found = []
-            
+
             for word in words:
-                if not spell_checker.check_word(word):
-                    suggestions = spell_checker.get_suggestions(word, context)
-                    if suggestions:
-                        errors_found.append({
-                            'word': word,
-                            'suggestion': suggestions[0].corrected,
-                            'confidence': suggestions[0].confidence
-                        })
-            
+                # Always call get_suggestions so we catch real-word confusion suggestions
+                suggestions = spell_checker.get_suggestions(word, context)
+                if not suggestions:
+                    continue
+
+                # If the suggestion comes from real-word confusion (source 'realword'), accept it
+                top = suggestions[0]
+                src = getattr(top, 'source', 'corpus')
+                # If the word was incorrect (non-word) or the suggestion indicates a real-word confusion
+                if (not spell_checker.check_word(word)) or src == 'realword':
+                    errors_found.append({
+                        'word': word,
+                        'suggestion': top.corrected,
+                        'confidence': top.confidence,
+                        'source': src
+                    })
+                    # Tally source counts for real-word suggestions
+                    if src in self.suggestion_source_counts:
+                        self.suggestion_source_counts[src] += 1
+                    else:
+                        self.suggestion_source_counts['unknown'] += 1
+
+            # Detection success criteria:
+            # - If expected is None, there should be NO errors detected (True when no errors_found)
+            # - If expected is a correction, there should be at least one suggestion with that correction
+            detection_successful = False
+            if expected is None:
+                detection_successful = len(errors_found) == 0
+            else:
+                detection_successful = any(e['suggestion'].lower() == expected.lower() for e in errors_found)
+
             real_word_results.append({
                 'context': context,
                 'expected_correction': expected,
                 'errors_detected': errors_found,
-                'detection_successful': len(errors_found) > 0 if expected else True
+                'detection_successful': detection_successful
             })
         
         self.results['system_capabilities'] = {
@@ -352,9 +376,35 @@ class SpellingCorrectionResultsGenerator:
                 corrections = []
                 
                 for word in words:
-                    if not spell_checker.check_word(word):
-                        suggestions = spell_checker.get_suggestions(word, test_text)
-                        if suggestions:
+                    # Always call get_suggestions; capture non-word and real-word suggestions
+                    suggestions = spell_checker.get_suggestions(word, test_text)
+                    detected_non_word = not spell_checker.check_word(word)
+
+                    if detected_non_word and suggestions:
+                        errors.append(word)
+                        corrections.append({
+                            'original': word,
+                            'suggestions': [
+                                {
+                                    'word': s.corrected,
+                                    'edit_distance': s.edit_distance,
+                                    'confidence': s.confidence,
+                                    'reason': s.reason if hasattr(s, 'reason') else '',
+                                    'source': s.source if hasattr(s, 'source') else 'unknown'
+                                } for s in suggestions[:3]
+                            ],
+                            'top_correction': suggestions[0].corrected
+                        })
+                        # count suggestion sources
+                        for s in suggestions[:3]:
+                            src = s.source if hasattr(s, 'source') else 'unknown'
+                            if src in self.suggestion_source_counts:
+                                self.suggestion_source_counts[src] += 1
+                            else:
+                                self.suggestion_source_counts['unknown'] += 1
+                    else:
+                        # Handle real-word confusion suggestions (e.g. 'too' -> 'to')
+                        if suggestions and getattr(suggestions[0], 'source', '') == 'realword':
                             errors.append(word)
                             corrections.append({
                                 'original': word,
@@ -364,11 +414,18 @@ class SpellingCorrectionResultsGenerator:
                                         'edit_distance': s.edit_distance,
                                         'confidence': s.confidence,
                                         'reason': s.reason if hasattr(s, 'reason') else '',
-                                        'source': s.source if hasattr(s, 'source') else 'unknown'
+                                        'source': s.source if hasattr(s, 'source') else 'realword'
                                     } for s in suggestions[:3]
                                 ],
                                 'top_correction': suggestions[0].corrected
                             })
+                            # tally sources
+                            for s in suggestions[:3]:
+                                src = s.source if hasattr(s, 'source') else 'unknown'
+                                if src in self.suggestion_source_counts:
+                                    self.suggestion_source_counts[src] += 1
+                                else:
+                                    self.suggestion_source_counts['unknown'] += 1
                             # count suggestion sources
                             for s in suggestions[:3]:
                                 src = s.source if hasattr(s, 'source') else 'unknown'
