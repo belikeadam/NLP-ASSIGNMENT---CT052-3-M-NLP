@@ -8,6 +8,7 @@ nltk>=3.8.0,<4.0.0
 
 # Optional: For downloading medical corpus from Kaggle
 kagglehub>=0.1.0
+pyenchant>=3.2.0
 
 # Standard Library (included with Python, no installation needed):
 # - tkinter (GUI framework)

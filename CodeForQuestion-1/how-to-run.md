@@ -7,6 +7,11 @@
 python check_spell_dependencies.py
 ```
 
+Note: PyEnchant is recommended for best accuracy. Install it with:
+```bash
+pip install pyenchant
+```
+
 ### 2. Run the Application
 ```bash
 python spell_correction_system.py
