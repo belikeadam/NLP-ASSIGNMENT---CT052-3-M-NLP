@@ -33,6 +33,7 @@ import re
 import json
 import time
 from collections import defaultdict, Counter
+from difflib import SequenceMatcher
 from typing import List, Tuple, Optional, Dict, Set
 from dataclasses import dataclass, asdict
 from abc import ABC, abstractmethod
@@ -212,7 +213,9 @@ class HybridDictionaryService:
         if self.enchant_dict:
             try:
                 suggestions = self.enchant_dict.suggest(word)
-                return [s.lower() for s in suggestions[:max_suggestions]]
+                # Filter to alphabetic suggestions only (drop hyphenated or spaced suggestions)
+                filtered = [s.lower() for s in suggestions if re.match(r'^[a-z]+$', s.lower())]
+                return filtered[:max_suggestions]
             except:
                 pass
         return []
@@ -859,7 +862,8 @@ class SmartSuggestionService:
             for alt in self.confusion_pairs[word_lower]:
                 alt_score = score_for(alt)
                 # require a meaningful improvement (e.g., 2x or +0.02 absolute)
-                if alt_score >= best_score * 2.0 or (alt_score - best_score) > 0.02:
+                # Require a meaningful improvement; relax threshold to capture context-sensitive fixes
+                if alt_score >= best_score * 1.2 or (alt_score - best_score) > 0.01:
                     best_score = alt_score
                     best_alt = alt
 
@@ -955,7 +959,7 @@ class SmartSuggestionService:
         candidates.update(ed1)
 
         # Filter by vocab and early stop if enough candidates found
-        candidates_in_vocab = candidates & vocabulary
+        candidates_in_vocab = set(w for w in candidates if w.isalpha()) & vocabulary
         if len(candidates_in_vocab) >= stop_after:
             return candidates_in_vocab
 
@@ -980,7 +984,7 @@ class SmartSuggestionService:
                         return candidates & vocabulary
 
         # Filter to only words in vocabulary
-        candidates_in_vocab = candidates & vocabulary
+        candidates_in_vocab = set(w for w in candidates if w.isalpha()) & vocabulary
 
         # If no candidates found and word is reasonably long, try phonetic/similar approaches
         if not candidates_in_vocab and len(word) > 4:
@@ -1315,7 +1319,41 @@ class AdvancedSpellChecker(ISpellChecker):
                     context_score = min(0.3 * baseline + 0.7 * max(bigram_scores), 1.0)
             
             edit_score = 1.0 / (1 + edit_dist)
-            confidence = 0.3 * edit_score + 0.4 * freq_score + 0.3 * context_score
+            # Source penalty/boost: penalize enchant-only words not in corpus, boost if enchant and in corpus
+            src = 'corpus'
+            try:
+                if candidate_sources:
+                    src = candidate_sources.get(candidate.lower(), 'corpus')
+            except Exception:
+                src = 'corpus'
+
+            source_boost = 0.0
+            # If enchant suggested it but it's also in LM vocabulary, small boost
+            if src == 'enchant' and candidate in self.language_model.vocabulary:
+                source_boost += 0.08
+            # If enchant suggested it but it's NOT in LM vocabulary and also not a medical term, penalize
+            if src == 'enchant' and candidate not in self.language_model.vocabulary:
+                if not hasattr(self, 'dictionary') or candidate not in getattr(self.dictionary, 'medical_terms', set()):
+                    # Reduce freq_score to avoid suggestion for words not in corpus/vocab
+                    freq_score = min(freq_score, 0.35)
+
+            # Prefix similarity boost (favors suggestions that start with the same first 3 letters)
+            prefix_boost = 0.0
+            try:
+                if candidate.lower().startswith(original.lower()[:3]):
+                    prefix_boost = 0.05
+            except Exception:
+                prefix_boost = 0.0
+
+            # Similarity boost using sequence matcher: favors candidates that are closer in sequence structure
+            sim_boost = 0.0
+            try:
+                sim = SequenceMatcher(None, original.lower(), candidate.lower()).ratio()
+                sim_boost = min(0.12 * sim, 0.12)
+            except Exception:
+                sim_boost = 0.0
+            confidence = 0.3 * edit_score + 0.4 * freq_score + 0.3 * context_score + source_boost + prefix_boost + sim_boost
+            confidence = min(confidence, 1.0)
             
             reasons = []
             if edit_dist == 1:

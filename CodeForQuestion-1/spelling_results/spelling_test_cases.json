@@ -8,7 +8,7 @@
         "results": [
           {
             "original": "The patiant has a symtom of fever",
-            "corrected": "The patient has a sym-tom of fever",
+            "corrected": "The patient has a symptom of fever",
             "errors_found": 2,
             "corrections": [
               {
@@ -17,14 +17,14 @@
                   {
                     "word": "patient",
                     "edit_distance": 1,
-                    "confidence": 0.5581414673444339,
+                    "confidence": 0.7909986102015768,
                     "reason": "1 edit, common",
                     "source": "enchant"
                   },
                   {
                     "word": "patin",
                     "edit_distance": 2,
-                    "confidence": 0.10155776313533187,
+                    "confidence": 0.25155776313533185,
                     "reason": "dictionary match",
                     "source": "enchant"
                   }
@@ -35,28 +35,14 @@
                 "original": "symtom",
                 "suggestions": [
                   {
-                    "word": "sym-tom",
-                    "edit_distance": 1,
-                    "confidence": 0.3015055139448229,
-                    "reason": "1 edit, fits context",
-                    "source": "enchant"
-                  },
-                  {
-                    "word": "sym tom",
-                    "edit_distance": 1,
-                    "confidence": 0.3015055139448229,
-                    "reason": "1 edit, fits context",
-                    "source": "enchant"
-                  },
-                  {
                     "word": "symptom",
                     "edit_distance": 1,
-                    "confidence": 0.1816888105415648,
+                    "confidence": 0.42245804131079556,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
                 ],
-                "top_correction": "sym-tom"
+                "top_correction": "symptom"
               }
             ],
             "fully_corrected": true
@@ -72,21 +58,7 @@
                   {
                     "word": "medicine",
                     "edit_distance": 1,
-                    "confidence": 0.15155776313533187,
-                    "reason": "1 edit",
-                    "source": "enchant"
-                  },
-                  {
-                    "word": "med cine",
-                    "edit_distance": 1,
-                    "confidence": 0.15155776313533187,
-                    "reason": "1 edit",
-                    "source": "enchant"
-                  },
-                  {
-                    "word": "med-cine",
-                    "edit_distance": 1,
-                    "confidence": 0.15155776313533187,
+                    "confidence": 0.31355776313533185,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -99,7 +71,7 @@
                   {
                     "word": "administered",
                     "edit_distance": 1,
-                    "confidence": 0.1816888105415648,
+                    "confidence": 0.42168881054156476,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -120,7 +92,7 @@
                   {
                     "word": "hospital",
                     "edit_distance": 1,
-                    "confidence": 0.22687406367492235,
+                    "confidence": 0.46187406367492234,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -133,21 +105,14 @@
                   {
                     "word": "immediately",
                     "edit_distance": 1,
-                    "confidence": 0.39183635063419775,
+                    "confidence": 0.586122064919912,
                     "reason": "1 edit, fits context",
                     "source": "enchant"
                   },
                   {
                     "word": "mediately",
                     "edit_distance": 1,
-                    "confidence": 0.3015055139448229,
-                    "reason": "1 edit, fits context",
-                    "source": "enchant"
-                  },
-                  {
-                    "word": "i mediately",
-                    "edit_distance": 1,
-                    "confidence": 0.3015055139448229,
+                    "confidence": 0.41518972447113867,
                     "reason": "1 edit, fits context",
                     "source": "enchant"
                   }
@@ -168,7 +133,7 @@
                   {
                     "word": "treatment",
                     "edit_distance": 1,
-                    "confidence": 0.5601170944712219,
+                    "confidence": 0.7967837611378886,
                     "reason": "1 edit, common",
                     "source": "enchant"
                   }
@@ -181,7 +146,7 @@
                   {
                     "word": "successful",
                     "edit_distance": 1,
-                    "confidence": 0.15152486473216245,
+                    "confidence": 0.31520907525847824,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -202,22 +167,22 @@
                   {
                     "word": "patient",
                     "edit_distance": 1,
-                    "confidence": 0.5555292803942875,
+                    "confidence": 0.7883864232514304,
                     "reason": "1 edit, common",
                     "source": "enchant"
                   },
                   {
                     "word": "patent",
                     "edit_distance": 1,
-                    "confidence": 0.3015055139448229,
+                    "confidence": 0.46227474471405366,
                     "reason": "1 edit, fits context",
                     "source": "enchant"
                   },
                   {
-                    "word": "pate int",
-                    "edit_distance": 1,
-                    "confidence": 0.3015055139448229,
-                    "reason": "1 edit, fits context",
+                    "word": "paint",
+                    "edit_distance": 2,
+                    "confidence": 0.3515055139448229,
+                    "reason": "fits context",
                     "source": "enchant"
                   }
                 ],
@@ -229,14 +194,14 @@
                   {
                     "word": "improvement",
                     "edit_distance": 1,
-                    "confidence": 0.2569964709929423,
+                    "confidence": 0.5012821852786566,
                     "reason": "1 edit",
                     "source": "enchant"
                   },
                   {
                     "word": "improvident",
                     "edit_distance": 2,
-                    "confidence": 0.10156307116607641,
+                    "confidence": 0.25442021402321924,
                     "reason": "dictionary match",
                     "source": "enchant"
                   }
@@ -299,21 +264,21 @@
                   {
                     "word": "diabetes",
                     "edit_distance": 1,
-                    "confidence": 0.26603440043558213,
+                    "confidence": 0.5010344004355821,
                     "reason": "1 edit",
                     "source": "enchant"
                   },
                   {
                     "word": "diabetics",
                     "edit_distance": 1,
-                    "confidence": 0.15156385205212772,
+                    "confidence": 0.31450502852271595,
                     "reason": "1 edit",
                     "source": "enchant"
                   },
                   {
                     "word": "diabetic",
                     "edit_distance": 1,
-                    "confidence": 0.15156385205212772,
+                    "confidence": 0.3065638520521277,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -334,14 +299,14 @@
                   {
                     "word": "pneumonia",
                     "edit_distance": 1,
-                    "confidence": 0.23610461698554397,
+                    "confidence": 0.47277128365221066,
                     "reason": "1 edit",
                     "source": "enchant"
                   },
                   {
                     "word": "pneumonic",
                     "edit_distance": 2,
-                    "confidence": 0.1015255534028637,
+                    "confidence": 0.24485888673619705,
                     "reason": "dictionary match",
                     "source": "enchant"
                   }
@@ -362,7 +327,7 @@
                   {
                     "word": "arthritis",
                     "edit_distance": 2,
-                    "confidence": 0.15578627230811276,
+                    "confidence": 0.3924529389747794,
                     "reason": "dictionary match",
                     "source": "enchant"
                   }
@@ -383,7 +348,7 @@
                   {
                     "word": "hypertension",
                     "edit_distance": 1,
-                    "confidence": 0.3449502547037721,
+                    "confidence": 0.5849502547037722,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -402,35 +367,35 @@
         "results": [
           {
             "original": "Teh patiant has been diagnosd with diabetis",
-            "corrected": "ted patient has been diagnosed with diabetes",
+            "corrected": "the patient has been diagnosed with diabetes",
             "errors_found": 4,
             "corrections": [
               {
                 "original": "Teh",
                 "suggestions": [
                   {
-                    "word": "ted",
+                    "word": "the",
                     "edit_distance": 1,
-                    "confidence": 0.3015055139448229,
-                    "reason": "1 edit, fits context",
+                    "confidence": 0.7104045394535975,
+                    "reason": "1 edit, common",
                     "source": "enchant"
                   },
                   {
                     "word": "te",
                     "edit_distance": 1,
-                    "confidence": 0.3015055139448229,
+                    "confidence": 0.3975055139448229,
                     "reason": "1 edit, fits context",
                     "source": "enchant"
                   },
                   {
-                    "word": "th",
+                    "word": "eh",
                     "edit_distance": 1,
-                    "confidence": 0.3015055139448229,
+                    "confidence": 0.3975055139448229,
                     "reason": "1 edit, fits context",
                     "source": "enchant"
                   }
                 ],
-                "top_correction": "ted"
+                "top_correction": "the"
               },
               {
                 "original": "patiant",
@@ -438,14 +403,14 @@
                   {
                     "word": "patient",
                     "edit_distance": 1,
-                    "confidence": 0.5562480892253675,
+                    "confidence": 0.7891052320825104,
                     "reason": "1 edit, common",
                     "source": "enchant"
                   },
                   {
                     "word": "patin",
                     "edit_distance": 2,
-                    "confidence": 0.2515055139448229,
+                    "confidence": 0.4015055139448229,
                     "reason": "fits context",
                     "source": "enchant"
                   }
@@ -458,22 +423,22 @@
                   {
                     "word": "diagnosed",
                     "edit_distance": 1,
-                    "confidence": 0.6922964217803853,
+                    "confidence": 0.9352375982509735,
                     "reason": "1 edit, common, fits context",
-                    "source": "enchant"
-                  },
-                  {
-                    "word": "diagnose",
-                    "edit_distance": 1,
-                    "confidence": 0.15156449237001812,
-                    "reason": "1 edit",
                     "source": "enchant"
                   },
                   {
                     "word": "diagnosis",
                     "edit_distance": 2,
-                    "confidence": 0.1316888105415648,
+                    "confidence": 0.3605123399533295,
                     "reason": "dictionary match",
+                    "source": "enchant"
+                  },
+                  {
+                    "word": "diagnose",
+                    "edit_distance": 1,
+                    "confidence": 0.3065644923700181,
+                    "reason": "1 edit",
                     "source": "enchant"
                   }
                 ],
@@ -485,21 +450,21 @@
                   {
                     "word": "diabetes",
                     "edit_distance": 1,
-                    "confidence": 0.26622844550750563,
+                    "confidence": 0.5012284455075057,
                     "reason": "1 edit",
                     "source": "enchant"
                   },
                   {
                     "word": "diabetics",
                     "edit_distance": 1,
-                    "confidence": 0.1515255534028637,
+                    "confidence": 0.3144667298734519,
                     "reason": "1 edit",
                     "source": "enchant"
                   },
                   {
                     "word": "diabetic",
                     "edit_distance": 1,
-                    "confidence": 0.1515255534028637,
+                    "confidence": 0.3065255534028637,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -520,7 +485,7 @@
                   {
                     "word": "hospital",
                     "edit_distance": 1,
-                    "confidence": 0.22687406367492235,
+                    "confidence": 0.46187406367492234,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -533,14 +498,14 @@
                   {
                     "word": "previous",
                     "edit_distance": 1,
-                    "confidence": 0.3015055139448229,
+                    "confidence": 0.46350551394482287,
                     "reason": "1 edit, fits context",
                     "source": "enchant"
                   },
                   {
                     "word": "previews",
                     "edit_distance": 2,
-                    "confidence": 0.2515055139448229,
+                    "confidence": 0.3975055139448229,
                     "reason": "fits context",
                     "source": "enchant"
                   }
@@ -553,7 +518,7 @@
                   {
                     "word": "treatment",
                     "edit_distance": 1,
-                    "confidence": 0.7000000000000001,
+                    "confidence": 0.9366666666666668,
                     "reason": "1 edit, common, fits context",
                     "source": "enchant"
                   }
@@ -574,22 +539,15 @@
                   {
                     "word": "symptoms",
                     "edit_distance": 1,
-                    "confidence": 0.5575866843190049,
+                    "confidence": 0.7995866843190049,
                     "reason": "1 edit, common",
                     "source": "enchant"
                   },
                   {
-                    "word": "sym toms",
-                    "edit_distance": 1,
-                    "confidence": 0.1515621615753518,
-                    "reason": "1 edit",
-                    "source": "enchant"
-                  },
-                  {
-                    "word": "sym-toms",
-                    "edit_distance": 1,
-                    "confidence": 0.1515621615753518,
-                    "reason": "1 edit",
+                    "word": "symptom",
+                    "edit_distance": 2,
+                    "confidence": 0.36454595339870766,
+                    "reason": "dictionary match",
                     "source": "enchant"
                   }
                 ],
@@ -601,7 +559,7 @@
                   {
                     "word": "significantly",
                     "edit_distance": 1,
-                    "confidence": 0.256997892196884,
+                    "confidence": 0.502197892196884,
                     "reason": "1 edit",
                     "source": "enchant"
                   }
@@ -621,7 +579,7 @@
     "non_word_detection": {
       "test_count": 10,
       "detection_rate": 1.0,
-      "correction_accuracy": 0.7,
+      "correction_accuracy": 0.9,
       "results": [
         {
           "input": "teh",
@@ -629,13 +587,13 @@
           "detected": true,
           "suggestions": [
             "the",
-            "ter",
-            "tee"
+            "tech",
+            "teth"
           ],
           "top_suggestion": "the",
           "correct": true,
           "edit_distance": 1,
-          "confidence": 0.7000000000000001,
+          "confidence": 0.86,
           "source": "enchant"
         },
         {
@@ -643,14 +601,14 @@
           "expected": "spelling",
           "detected": true,
           "suggestions": [
+            "spelling",
             "spewing",
-            "spieling",
-            "spelling"
+            "spieling"
           ],
-          "top_suggestion": "spewing",
-          "correct": false,
+          "top_suggestion": "spelling",
+          "correct": true,
           "edit_distance": 1,
-          "confidence": 0.3015055139448229,
+          "confidence": 0.46350551394482287,
           "source": "enchant"
         },
         {
@@ -664,7 +622,7 @@
           "top_suggestion": "receive",
           "correct": true,
           "edit_distance": 1,
-          "confidence": 0.3015055139448229,
+          "confidence": 0.45436265680196575,
           "source": "enchant"
         },
         {
@@ -672,14 +630,14 @@
           "expected": "occurred",
           "detected": true,
           "suggestions": [
-            "occur-ed",
             "occurred",
-            "occur ed"
+            "occur",
+            "cured"
           ],
-          "top_suggestion": "occur-ed",
-          "correct": false,
+          "top_suggestion": "occurred",
+          "correct": true,
           "edit_distance": 1,
-          "confidence": 0.3015055139448229,
+          "confidence": 0.46350551394482287,
           "source": "enchant"
         },
         {
@@ -688,13 +646,13 @@
           "detected": true,
           "suggestions": [
             "separate",
-            "temperate",
-            "desperate"
+            "desperate",
+            "temperate"
           ],
           "top_suggestion": "separate",
           "correct": true,
           "edit_distance": 1,
-          "confidence": 0.3015055139448229,
+          "confidence": 0.45650551394482286,
           "source": "enchant"
         },
         {
@@ -702,14 +660,14 @@
           "expected": "giraffe",
           "detected": true,
           "suggestions": [
-            "gaffe",
             "agraffe",
-            "griffe"
+            "giraffe",
+            "gaffe"
           ],
-          "top_suggestion": "gaffe",
+          "top_suggestion": "agraffe",
           "correct": false,
           "edit_distance": 1,
-          "confidence": 0.3015055139448229,
+          "confidence": 0.4122747447140537,
           "source": "enchant"
         },
         {
@@ -723,7 +681,7 @@
           "top_suggestion": "patient",
           "correct": true,
           "edit_distance": 1,
-          "confidence": 0.7000000000000001,
+          "confidence": 0.9328571428571429,
           "source": "enchant"
         },
         {
@@ -731,14 +689,12 @@
           "expected": "medicine",
           "detected": true,
           "suggestions": [
-            "medicine",
-            "med cine",
-            "med-cine"
+            "medicine"
           ],
           "top_suggestion": "medicine",
           "correct": true,
           "edit_distance": 1,
-          "confidence": 0.3015055139448229,
+          "confidence": 0.46350551394482287,
           "source": "enchant"
         },
         {
@@ -746,14 +702,12 @@
           "expected": "symptom",
           "detected": true,
           "suggestions": [
-            "symptom",
-            "sym-tom",
-            "sym tom"
+            "symptom"
           ],
           "top_suggestion": "symptom",
           "correct": true,
           "edit_distance": 1,
-          "confidence": 0.3316157928412812,
+          "confidence": 0.5723850236105119,
           "source": "enchant"
         },
         {
@@ -766,7 +720,7 @@
           "top_suggestion": "hospital",
           "correct": true,
           "edit_distance": 1,
-          "confidence": 0.37678121118596863,
+          "confidence": 0.6117812111859686,
           "source": "enchant"
         }
       ]
@@ -820,7 +774,7 @@
       "laplace_smoothing": true
     },
     "suggestion_source_counts": {
-      "enchant": 66,
+      "enchant": 60,
       "corpus": 0,
       "realword": 0,
       "unknown": 0
