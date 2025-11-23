@@ -381,7 +381,7 @@
                     "source": "enchant"
                   },
                   {
-                    "word": "te",
+                    "word": "th",
                     "edit_distance": 1,
                     "confidence": 0.3975055139448229,
                     "reason": "1 edit, fits context",
@@ -646,8 +646,8 @@
           "detected": true,
           "suggestions": [
             "separate",
-            "desperate",
-            "temperate"
+            "temperate",
+            "desperate"
           ],
           "top_suggestion": "separate",
           "correct": true,

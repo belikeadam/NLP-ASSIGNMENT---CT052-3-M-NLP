@@ -1,12 +1,12 @@
 {
   "metadata": {
-    "generated_at": "2025-11-23T12:06:26.417626",
+    "generated_at": "2025-11-23T12:08:49.724678",
     "system": "Advanced Spelling Correction System",
     "assignment": "NLP - Part A, Question 1"
   },
   "corpus_analysis": {
     "vocabulary_size": 3552,
-    "hybrid_vocabulary_sample": 633,
+    "hybrid_vocabulary_sample": 634,
     "hybrid_vocabulary_full_count": 234510,
     "hybrid_enchant_installed": true,
     "total_vocabulary_size": 238062,
@@ -96,7 +96,7 @@
     ],
     "corpus_meets_requirement": true,
     "required_minimum": 100000,
-    "bigram_count": 20120,
+    "bigram_count": 20114,
     "domain": "Medical Science",
     "corpus_quality": {
       "diverse_vocabulary": false,
@@ -175,8 +175,8 @@
           "detected": true,
           "suggestions": [
             "separate",
-            "desperate",
-            "temperate"
+            "temperate",
+            "desperate"
           ],
           "top_suggestion": "separate",
           "correct": true,
@@ -691,7 +691,7 @@
                     "source": "enchant"
                   },
                   {
-                    "word": "te",
+                    "word": "th",
                     "edit_distance": 1,
                     "confidence": 0.3975055139448229,
                     "reason": "1 edit, fits context",
@@ -886,15 +886,15 @@
     "total_errors_detected": 23
   },
   "performance_metrics": {
-    "average_response_time_ms": 21.30913734436035,
-    "min_response_time_ms": 6.178140640258789,
-    "max_response_time_ms": 36.655426025390625,
+    "average_response_time_ms": 21.2127685546875,
+    "min_response_time_ms": 4.820823669433594,
+    "max_response_time_ms": 37.149667739868164,
     "suggestions_per_query": 5,
     "cache_enabled": true,
     "real_time_checking": true,
     "scalability": {
       "vocabulary_size": 238062,
-      "bigram_coverage": 20120,
+      "bigram_coverage": 20114,
       "memory_efficient": true
     }
   },
