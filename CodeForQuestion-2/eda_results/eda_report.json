@@ -1,12 +1,14 @@
 {
   "dataset_info": {
     "num_samples": 5572,
-    "num_features": 2,
+    "num_features": 4,
     "columns": [
       "label",
-      "text"
+      "text",
+      "text_length",
+      "word_count"
     ],
-    "memory_usage": "0.98 MB"
+    "memory_usage": "1.06 MB"
   },
   "class_distribution": {
     "counts": {
@@ -21,7 +23,7 @@
   },
   "text_analysis": {
     "ham": {
-      "avg_length": 71.48248704663213,
+      "avg_length": 71.48290155440415,
       "avg_words": 14.310259067357514
     },
     "spam": {

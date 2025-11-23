@@ -1,0 +1,292 @@
+{
+  "model_comparison": {
+    "comparison_table": [
+      {
+        "Model": "Support Vector Machine",
+        "Accuracy": 0.9776,
+        "Precision": 0.9779,
+        "Recall": 0.9776,
+        "F1-Score": 0.9768,
+        "ROC-AUC": 0.0
+      },
+      {
+        "Model": "Gradient Boosting",
+        "Accuracy": 0.9758,
+        "Precision": 0.976,
+        "Recall": 0.9758,
+        "F1-Score": 0.9749,
+        "ROC-AUC": 0.9836
+      },
+      {
+        "Model": "Random Forest",
+        "Accuracy": 0.9758,
+        "Precision": 0.9764,
+        "Recall": 0.9758,
+        "F1-Score": 0.9747,
+        "ROC-AUC": 0.9899
+      },
+      {
+        "Model": "Logistic Regression",
+        "Accuracy": 0.9713,
+        "Precision": 0.9716,
+        "Recall": 0.9713,
+        "F1-Score": 0.97,
+        "ROC-AUC": 0.9854
+      },
+      {
+        "Model": "Naive Bayes",
+        "Accuracy": 0.9614,
+        "Precision": 0.9626,
+        "Recall": 0.9614,
+        "F1-Score": 0.9588,
+        "ROC-AUC": 0.9719
+      }
+    ],
+    "best_performers": {
+      "accuracy": {
+        "model": "Support Vector Machine",
+        "score": 0.9776
+      },
+      "f1_score": {
+        "model": "Support Vector Machine",
+        "score": 0.9768
+      },
+      "precision": {
+        "model": "Support Vector Machine",
+        "score": 0.9779
+      },
+      "recall": {
+        "model": "Support Vector Machine",
+        "score": 0.9776
+      }
+    },
+    "ranking_by_f1": [
+      "Support Vector Machine",
+      "Gradient Boosting",
+      "Random Forest",
+      "Logistic Regression",
+      "Naive Bayes"
+    ],
+    "analysis": {
+      "top_model": "Support Vector Machine",
+      "performance_range": {
+        "min_f1": 0.9588,
+        "max_f1": 0.9768,
+        "range": 0.018000000000000016
+      },
+      "consistency": "High"
+    }
+  },
+  "hyperparameter_tuning": {
+    "tuning_method": "GridSearchCV",
+    "cross_validation_folds": 5,
+    "scoring_metric": "F1-Score (weighted)",
+    "tuned_models": {
+      "Support Vector Machine": {
+        "best_parameters": {
+          "C": 10,
+          "gamma": "scale",
+          "kernel": "rbf",
+          "probability": true
+        },
+        "tuning_method": "Grid Search with 5-fold Cross-Validation",
+        "tuned_metrics": {
+          "accuracy": 0.9802690582959641,
+          "precision": 0.980512040115833,
+          "recall": 0.9802690582959641,
+          "f1_score": 0.9796603928354781,
+          "roc_auc": 0.9881751358261427
+        },
+        "improvement": "Optimized through systematic parameter search"
+      },
+      "Logistic Regression": {
+        "best_parameters": {
+          "C": 100,
+          "max_iter": 1000,
+          "random_state": 42,
+          "solver": "saga"
+        },
+        "tuning_method": "Grid Search with 5-fold Cross-Validation",
+        "tuned_metrics": {
+          "accuracy": 0.979372197309417,
+          "precision": 0.9792311737073058,
+          "recall": 0.979372197309417,
+          "f1_score": 0.9789049840419666,
+          "roc_auc": 0.9875984826378756
+        },
+        "improvement": "Optimized through systematic parameter search"
+      },
+      "Naive Bayes": {
+        "best_parameters": {
+          "alpha": 0.1
+        },
+        "tuning_method": "Grid Search with 5-fold Cross-Validation",
+        "tuned_metrics": {
+          "accuracy": 0.9757847533632287,
+          "precision": 0.9755484561087888,
+          "recall": 0.9757847533632287,
+          "f1_score": 0.9751578714933107,
+          "roc_auc": 0.9803590534550557
+        },
+        "improvement": "Optimized through systematic parameter search"
+      },
+      "Random Forest": {
+        "best_parameters": {
+          "class_weight": "balanced",
+          "max_depth": null,
+          "min_samples_split": 5,
+          "n_estimators": 100
+        },
+        "tuning_method": "Grid Search with 5-fold Cross-Validation",
+        "tuned_metrics": {
+          "accuracy": 0.9802690582959641,
+          "precision": 0.980708411248888,
+          "recall": 0.9802690582959641,
+          "f1_score": 0.9795937550866923,
+          "roc_auc": 0.9868620339877998
+        },
+        "improvement": "Optimized through systematic parameter search"
+      },
+      "Gradient Boosting": {
+        "best_parameters": {
+          "learning_rate": 0.2,
+          "max_depth": 5,
+          "n_estimators": 200,
+          "subsample": 1.0
+        },
+        "tuning_method": "Grid Search with 5-fold Cross-Validation",
+        "tuned_metrics": {
+          "accuracy": 0.979372197309417,
+          "precision": 0.9794733349325778,
+          "recall": 0.979372197309417,
+          "f1_score": 0.9787702598452416,
+          "roc_auc": 0.9887031556129893
+        },
+        "improvement": "Optimized through systematic parameter search"
+      }
+    },
+    "parameter_grids": {
+      "Support Vector Machine": {
+        "C": [
+          0.1,
+          1,
+          10,
+          100
+        ],
+        "kernel": [
+          "linear",
+          "rbf"
+        ],
+        "gamma": [
+          "scale",
+          "auto"
+        ],
+        "probability": [
+          true
+        ]
+      },
+      "Logistic Regression": {
+        "C": [
+          0.01,
+          0.1,
+          1,
+          10,
+          100
+        ],
+        "solver": [
+          "liblinear",
+          "saga"
+        ],
+        "max_iter": [
+          1000
+        ],
+        "random_state": [
+          42
+        ]
+      },
+      "Naive Bayes": {
+        "alpha": [
+          0.1,
+          0.5,
+          1.0,
+          2.0,
+          5.0
+        ]
+      },
+      "Random Forest": {
+        "n_estimators": [
+          100,
+          200
+        ],
+        "max_depth": [
+          10,
+          20,
+          null
+        ],
+        "min_samples_split": [
+          2,
+          5
+        ],
+        "class_weight": [
+          "balanced",
+          null
+        ]
+      },
+      "Gradient Boosting": {
+        "n_estimators": [
+          100,
+          200
+        ],
+        "learning_rate": [
+          0.05,
+          0.1,
+          0.2
+        ],
+        "max_depth": [
+          3,
+          5,
+          7
+        ],
+        "subsample": [
+          0.8,
+          1.0
+        ]
+      }
+    }
+  },
+  "best_model": {
+    "model_name": "Support Vector Machine",
+    "selection_criterion": "Highest F1-Score",
+    "final_metrics": {
+      "accuracy": 0.9802690582959641,
+      "precision": 0.980512040115833,
+      "recall": 0.9802690582959641,
+      "f1_score": 0.9796603928354781,
+      "roc_auc": 0.9881751358261427
+    },
+    "confusion_matrix": [
+      [
+        965,
+        1
+      ],
+      [
+        21,
+        128
+      ]
+    ],
+    "classification_report": "              precision    recall  f1-score   support\n\n         ham       0.98      1.00      0.99       966\n        spam       0.99      0.86      0.92       149\n\n    accuracy                           0.98      1115\n   macro avg       0.99      0.93      0.95      1115\nweighted avg       0.98      0.98      0.98      1115\n",
+    "hyperparameters": {
+      "C": 10,
+      "gamma": "scale",
+      "kernel": "rbf",
+      "probability": true
+    },
+    "strengths": [
+      "Excellent for high-dimensional text data",
+      "Strong generalization with proper regularization",
+      "Effective with sparse features",
+      "Good performance on binary classification"
+    ],
+    "deployment_ready": true
+  }
+}
