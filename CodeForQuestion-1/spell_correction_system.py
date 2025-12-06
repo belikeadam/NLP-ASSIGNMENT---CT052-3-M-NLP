@@ -2182,19 +2182,26 @@ def create_streamlit_app():
         with c1:
             if st.button("Non-word Example", use_container_width=True):
                 st.session_state.input_text = "I recieved the grammer report seperate from the accomodation."
+                st.session_state.last_checked = ""
+                st.session_state.errors = []
                 st.rerun()
         with c2:
             if st.button("Real-word Example", use_container_width=True):
                 st.session_state.input_text = "I went too the store to buy there groceries."
+                st.session_state.last_checked = ""
+                st.session_state.errors = []
                 st.rerun()
         with c3:
             if st.button("Medical Example", use_container_width=True):
                 st.session_state.input_text = "The patiant has symtoms of diabetis and hypertention."
+                st.session_state.last_checked = ""
+                st.session_state.errors = []
                 st.rerun()
         with c4:
             if st.button("Clear", use_container_width=True):
                 st.session_state.input_text = ""
                 st.session_state.errors = []
+                st.session_state.last_checked = ""
                 st.rerun()
         
         # Text input with auto-check
@@ -2203,16 +2210,17 @@ def create_streamlit_app():
             value=st.session_state.input_text,
             height=180,
             max_chars=500,
-            placeholder="Type here. Spelling checks automatically.",
-            key="text_input"
+            placeholder="Type here. Spelling checks automatically."
         )
+        
+        # Update session state with current input
+        st.session_state.input_text = user_input
         
         st.caption(f"Characters: {len(user_input)}/500")
         
         # Auto spell-check on text change
         if user_input.strip() and user_input != st.session_state.last_checked:
             st.session_state.last_checked = user_input
-            st.session_state.input_text = user_input
             
             words = re.findall(r'\b[a-zA-Z]+\b', user_input)
             errors_found = []
@@ -2234,6 +2242,9 @@ def create_streamlit_app():
                     })
             
             st.session_state.errors = errors_found
+        elif not user_input.strip():
+            # Clear errors if text is empty
+            st.session_state.errors = []
         
         # Display results
         if st.session_state.errors:
