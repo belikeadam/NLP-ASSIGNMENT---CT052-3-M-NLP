@@ -69,6 +69,10 @@ python -c "import nltk; print('NLTK version:', nltk.__version__)"
 ```bash
 python spell_correction_system.py
 ```
+If you want to force downloading the Kaggle medical transcriptions corpus instead of using a cached or generated corpus, run:
+```bash
+python spell_correction_system.py --force-download
+```
 
 ### What Happens on First Run
 1. **Corpus Loading**: Downloads/generates 100,000+ word medical corpus (~2-3 seconds)

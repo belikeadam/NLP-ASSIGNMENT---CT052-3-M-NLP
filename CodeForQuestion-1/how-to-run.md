@@ -17,6 +17,16 @@ pip install pyenchant
 python spell_correction_system.py
 ```
 
+### Optional: Force real Kaggle download
+If you want to force the download of the Kaggle dataset instead of using the local file or synthetic generator, use:
+```bash
+python spell_correction_system.py --force-download
+```
+Or if you want to prevent auto-detection of a synthetic corpus and skip the automatic download-on-detection, use:
+```bash
+python spell_correction_system.py --skip-synthetic-detection
+```
+
 ## What to Expect
 
 - **First Run**: The system will download/generate a medical corpus and train the language model (takes ~10-30 seconds)

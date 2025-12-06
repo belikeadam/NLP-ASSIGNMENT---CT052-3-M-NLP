@@ -28,6 +28,8 @@ python spelling_correction.py
 """
 
 import os
+import argparse
+from datetime import datetime
 import pickle
 import re
 import json
@@ -295,18 +297,44 @@ class CorpusService:
         self.corpus_text = ""
         self.corpus_path = Config.CORPUS_FILE
         
-    def load_corpus(self, progress_callback=None) -> str:
+    def load_corpus(self, progress_callback=None, force_download: bool = False, download_if_synthetic: bool = True) -> str:
         """Load corpus from file or download"""
-        if os.path.exists(self.corpus_path):
-            if progress_callback:
-                progress_callback("Loading corpus from cache...")
-            with open(self.corpus_path, 'r', encoding='utf-8') as f:
-                self.corpus_text = f.read()
+        # If the user forces download and an existing corpus exists, back it up.
+        if force_download and os.path.exists(self.corpus_path):
+            try:
+                bakname = f"{self.corpus_path}.bak-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+                os.rename(self.corpus_path, bakname)
+                if progress_callback:
+                    progress_callback(f"Existing corpus backed up to {bakname}")
+            except Exception:
+                # ignore backup errors, but continue
+                pass
+
+        if os.path.exists(self.corpus_path) and not force_download:
+            # If the file exists, optionally check whether it appears synthetic
+            if download_if_synthetic and self._is_synthetic_corpus():
+                if progress_callback:
+                    progress_callback("Existing corpus appears synthetic. Attempting download from Kaggle...")
+                try:
+                    corpus_text = self._download_from_kaggle()
+                    with open(self.corpus_path, 'w', encoding='utf-8') as f:
+                        f.write(corpus_text)
+                    self.corpus_text = corpus_text
+                except Exception:
+                    # Fall back to existing cached file
+                    if progress_callback:
+                        progress_callback("Download failed. Loading corpus from cache...")
+                    with open(self.corpus_path, 'r', encoding='utf-8') as f:
+                        self.corpus_text = f.read()
+            else:
+                if progress_callback:
+                    progress_callback("Loading corpus from cache...")
+                with open(self.corpus_path, 'r', encoding='utf-8') as f:
+                    self.corpus_text = f.read()
         else:
             if progress_callback:
                 progress_callback("Downloading medical corpus...")
             self.corpus_text = self._download_corpus()
-            
             # Save for future use
             with open(self.corpus_path, 'w', encoding='utf-8') as f:
                 f.write(self.corpus_text)
@@ -664,6 +692,29 @@ class CorpusService:
         print(f"   Real-word detection: ENABLED")
         
         return corpus_text
+
+    def _is_synthetic_corpus(self, sample_size: int = 2000) -> bool:
+        """Quick heuristic to determine whether a cached corpus looks synthetic.
+
+        Detects repeated synthetic medical terms created by prefix+base+suffix generation.
+        Returns True if synthetic-like tokens are found at a higher-than-expected ratio.
+        """
+        if not os.path.exists(self.corpus_path):
+            return False
+
+        suffixes = ['plasty', 'ectomy', 'otomy', 'graphy', 'genic', 'emia', 'algia', 'itis', 'oma', 'osis', 'pathy', 'penia']
+        try:
+            with open(self.corpus_path, 'r', encoding='utf-8') as f:
+                txt = f.read(sample_size).lower()
+            words = re.findall(r"\b[a-z]+\b", txt)
+            if not words:
+                return False
+            synthetic_count = sum(1 for w in words if any(w.endswith(suf) for suf in suffixes))
+            ratio = synthetic_count / len(words)
+            # If more than 2% of sampled tokens look synthetic, mark as synthetic
+            return ratio > 0.02
+        except Exception:
+            return False
 
 # ============================================================================
 # LANGUAGE MODEL
@@ -1501,7 +1552,7 @@ class TextPreprocessor:
 class SpellCheckerGUI:
     """Professional GUI for spell checking system"""
     
-    def __init__(self):
+    def __init__(self, force_download: bool = False, download_if_synthetic: bool = True):
         self.root = tk.Tk()
         self.root.title("Advanced Spelling Correction System")
         self.root.geometry(f"{Config.WINDOW_WIDTH}x{Config.WINDOW_HEIGHT}")
@@ -1513,6 +1564,8 @@ class SpellCheckerGUI:
         self.misspelled_words = {}
         self.check_timer = None
         
+        self.force_download = force_download
+        self.download_if_synthetic = download_if_synthetic
         self._create_ui()
         self._load_corpus_async()
         
@@ -1696,7 +1749,11 @@ class SpellCheckerGUI:
                 else:
                     # Load corpus
                     corpus_service = CorpusService()
-                    corpus = corpus_service.load_corpus(self._update_status)
+                    corpus = corpus_service.load_corpus(
+                        self._update_status,
+                        force_download=self.force_download,
+                        download_if_synthetic=self.download_if_synthetic
+                    )
                     
                     # Train model
                     self.spell_checker.train(corpus, self._update_status)
@@ -1931,8 +1988,17 @@ def main():
     print("+ 100,000+ word corpus")
     print("\n" + "=" * 70)
     
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description='Advanced Spelling Correction System')
+    parser.add_argument('--force-download', action='store_true', help='Force download of corpus from Kaggle (overwrites existing corpus)')
+    parser.add_argument('--skip-synthetic-detection', action='store_true', help='Do not auto-detect synthetic corpus and force download')
+    args = parser.parse_args()
+
+    if args.force_download:
+        print('Forcing download of corpus from Kaggle (if available)')
+
     # Create and run GUI
-    app = SpellCheckerGUI()
+    app = SpellCheckerGUI(force_download=args.force_download, download_if_synthetic=not args.skip_synthetic_detection)
     app.run()
 
 if __name__ == "__main__":
