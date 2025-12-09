@@ -1,6 +1,6 @@
 """
 ============================================================================
-ADVANCED SPELLING CORRECTION SYSTEM - COMPLETE IMPLEMENTATION
+ADVANCED SPELLING CORRECTION SYSTEM - STREAMLIT WEB APPLICATION
 Natural Language Processing Assignment - Part A, Question 1
 ============================================================================
 
@@ -12,17 +12,17 @@ FEATURES:
 ✓ Damerau-Levenshtein Distance (with transposition support)
 ✓ Bigram language model with Laplace smoothing
 ✓ Advanced suggestion ranking (edit distance + frequency + context)
-✓ Professional GUI with real-time spell checking
+✓ Interactive Streamlit web interface with real-time spell checking
 ✓ Word dictionary browser with search functionality
 ✓ Comprehensive caching system
 ✓ Performance optimization and error handling
 ✓ SOLID principles and clean architecture
 
 INSTALLATION:
-pip install nltk kagglehub
+pip install nltk kagglehub streamlit plotly
 
 USAGE:
-python spelling_correction.py
+streamlit run spell_correction_system.py
 
 ============================================================================
 """
@@ -40,8 +40,6 @@ from typing import List, Tuple, Optional, Dict, Set
 from dataclasses import dataclass, asdict
 from abc import ABC, abstractmethod
 from threading import Thread
-import tkinter as tk
-from tkinter import ttk, scrolledtext, messagebox
 
 # NLTK imports with error handling
 try:
@@ -102,10 +100,8 @@ class Config:
     MAX_EDIT_DISTANCE = 2  # Was 3; 2 is more practical and reduces false positives
     SUGGESTION_COUNT = 5
     
-    # GUI settings
+    # Text settings
     MAX_TEXT_LENGTH = 500
-    WINDOW_WIDTH = 1000
-    WINDOW_HEIGHT = 650
     
     # Caching settings
     CACHE_LANGUAGE_MODEL = os.path.join(CACHE_DIR, "language_model.pkl")
@@ -1554,609 +1550,41 @@ class TextPreprocessor:
         return text
 
 # ============================================================================
-# GUI APPLICATION
-# ============================================================================
-
-class SpellCheckerGUI:
-    """Professional GUI for spell checking system"""
-    
-    def __init__(self, force_download: bool = False, download_if_synthetic: bool = True):
-        self.root = tk.Tk()
-        self.root.title("Advanced Spelling Correction System")
-        self.root.geometry(f"{Config.WINDOW_WIDTH}x{Config.WINDOW_HEIGHT}")
-        self.root.configure(bg='#f0f0f0')
-        
-        # Initialize components
-        self.spell_checker = AdvancedSpellChecker()
-        self.preprocessor = TextPreprocessor()
-        self.misspelled_words = {}
-        self.check_timer = None
-        
-        self.force_download = force_download
-        self.download_if_synthetic = download_if_synthetic
-        self._create_ui()
-        self._load_corpus_async()
-        
-    def _create_ui(self):
-        """Create user interface components"""
-        # Title frame
-        title_frame = tk.Frame(self.root, bg='#2c3e50', height=60)
-        title_frame.pack(fill='x')
-        title_frame.pack_propagate(False)
-        
-        title_label = tk.Label(
-            title_frame, 
-            text="Advanced Spelling Correction System",
-            font=('Arial', 18, 'bold'),
-            bg='#2c3e50',
-            fg='white'
-        )
-        title_label.pack(pady=15)
-        
-        # Main container
-        main_container = tk.Frame(self.root, bg='#f0f0f0')
-        main_container.pack(fill='both', expand=True, padx=20, pady=20)
-        
-        # Left panel - Text editor
-        left_panel = tk.Frame(main_container, bg='white', relief='solid', borderwidth=1)
-        left_panel.pack(side='left', fill='both', expand=True, padx=(0, 10))
-        
-        editor_label = tk.Label(
-            left_panel,
-            text="Text Editor (500 characters max)",
-            font=('Arial', 11, 'bold'),
-            bg='white',
-            anchor='w'
-        )
-        editor_label.pack(fill='x', padx=10, pady=(10, 5))
-        
-        # Text widget with scrollbar
-        text_frame = tk.Frame(left_panel, bg='white')
-        text_frame.pack(fill='both', expand=True, padx=10, pady=(0, 10))
-        
-        self.text_widget = tk.Text(
-            text_frame,
-            wrap=tk.WORD,
-            font=('Arial', 11),
-            padx=10,
-            pady=10
-        )
-        
-        scrollbar = tk.Scrollbar(text_frame, command=self.text_widget.yview)
-        self.text_widget.config(yscrollcommand=scrollbar.set)
-        
-        scrollbar.pack(side='right', fill='y')
-        self.text_widget.pack(side='left', fill='both', expand=True)
-        
-        # Configure text tags
-        self.text_widget.tag_config('misspelled', underline=True, foreground='red')
-        self.text_widget.tag_config('corrected', background='#d4edda')
-        
-        # Bind events
-        self.text_widget.bind('<KeyRelease>', self._on_text_change)
-        self.text_widget.bind('<Button-1>', self._on_word_click)
-        
-        # Character counter
-        self.char_label = tk.Label(
-            left_panel,
-            text="Characters: 0/500",
-            font=('Arial', 9),
-            bg='white',
-            anchor='w'
-        )
-        self.char_label.pack(fill='x', padx=10, pady=(0, 5))
-        
-        # Control buttons
-        button_frame = tk.Frame(left_panel, bg='white')
-        button_frame.pack(fill='x', padx=10, pady=(0, 10))
-        
-        self.clear_btn = tk.Button(
-            button_frame,
-            text="Clear Text",
-            command=self._clear_text,
-            font=('Arial', 10),
-            bg='#e74c3c',
-            fg='white',
-            relief='flat',
-            padx=15,
-            pady=8,
-            cursor='hand2'
-        )
-        self.clear_btn.pack(side='left', padx=(0, 10))
-        
-        self.auto_correct_btn = tk.Button(
-            button_frame,
-            text="Auto-Correct All",
-            command=self._auto_correct_all,
-            font=('Arial', 10),
-            bg='#27ae60',
-            fg='white',
-            relief='flat',
-            padx=15,
-            pady=8,
-            cursor='hand2'
-        )
-        self.auto_correct_btn.pack(side='left')
-        
-        # Right panel - Word dictionary
-        right_panel = tk.Frame(main_container, bg='white', relief='solid', borderwidth=1)
-        right_panel.pack(side='right', fill='both', padx=(10, 0))
-        right_panel.config(width=250)
-        
-        dict_label = tk.Label(
-            right_panel,
-            text="Word Dictionary",
-            font=('Arial', 11, 'bold'),
-            bg='white',
-            anchor='w'
-        )
-        dict_label.pack(fill='x', padx=10, pady=(10, 5))
-        
-        # Search box
-        search_frame = tk.Frame(right_panel, bg='white')
-        search_frame.pack(fill='x', padx=10, pady=(0, 10))
-        
-        self.search_var = tk.StringVar()
-        
-        # Fix for Tcl 9 compatibility
-        try:
-            # Modern Tkinter (Tcl 9+)
-            self.search_var.trace_add('write', self._on_search)
-        except AttributeError:
-            # Legacy Tkinter (Tcl 8)
-            self.search_var.trace('w', self._on_search)
-        
-        search_entry = tk.Entry(
-            search_frame,
-            textvariable=self.search_var,
-            font=('Arial', 10),
-            relief='solid',
-            borderwidth=1
-        )
-        search_entry.pack(fill='x')
-        search_entry.insert(0, "Search words...")
-        search_entry.bind('<FocusIn>', lambda e: search_entry.delete(0, 'end') if search_entry.get().startswith('Search') else None)
-        
-        # Word listbox with scrollbar
-        listbox_frame = tk.Frame(right_panel, bg='white')
-        listbox_frame.pack(fill='both', expand=True, padx=10, pady=(0, 10))
-        
-        self.word_listbox = tk.Listbox(
-            listbox_frame,
-            font=('Courier', 9),
-            relief='flat'
-        )
-        
-        list_scrollbar = tk.Scrollbar(listbox_frame, command=self.word_listbox.yview)
-        self.word_listbox.config(yscrollcommand=list_scrollbar.set)
-        
-        list_scrollbar.pack(side='right', fill='y')
-        self.word_listbox.pack(side='left', fill='both', expand=True)
-        
-        # Status bar
-        self.status_label = tk.Label(
-            self.root,
-            text="Loading corpus...",
-            font=('Arial', 9),
-            bg='#34495e',
-            fg='white',
-            anchor='w',
-            padx=10
-        )
-        self.status_label.pack(fill='x', side='bottom')
-    
-    def _load_corpus_async(self):
-        """Load corpus in background thread"""
-        def load():
-            try:
-                # Try to load from cache first
-                if self.spell_checker.load_from_cache():
-                    self.root.after(0, lambda: self._update_status("Loaded from cache"))
-                    self.root.after(0, self._populate_word_list)
-                    self.root.after(0, lambda: self._update_status("Ready. Start typing to check spelling."))
-                else:
-                    # Load corpus
-                    corpus_service = CorpusService()
-                    corpus = corpus_service.load_corpus(
-                        self._update_status,
-                        force_download=self.force_download,
-                        download_if_synthetic=self.download_if_synthetic
-                    )
-                    
-                    # Train model
-                    self.spell_checker.train(corpus, self._update_status)
-                    
-                    # Update UI
-                    self.root.after(0, self._populate_word_list)
-                    self.root.after(0, lambda: self._update_status("Ready. Start typing to check spelling."))
-            except Exception as e:
-                self.root.after(0, lambda: self._update_status(f"Error: {str(e)}"))
-                self.root.after(0, lambda: messagebox.showerror("Error", f"Failed to load corpus: {str(e)}"))
-        
-        Thread(target=load, daemon=True).start()
-    
-    def _update_status(self, message: str):
-        """Update status bar"""
-        self.status_label.config(text=message)
-    
-    def _populate_word_list(self):
-        """Populate word dictionary listbox"""
-        words = self.spell_checker.get_all_words_sorted()
-        self.word_listbox.delete(0, tk.END)
-        
-        for word, freq in words[:1000]:
-            self.word_listbox.insert(tk.END, f"{word} ({freq})")
-    
-    def _on_search(self, *args):
-        """Filter word list based on search"""
-        search_term = self.search_var.get().lower()
-        if search_term.startswith('search'):
-            return
-        
-        self.word_listbox.delete(0, tk.END)
-        words = self.spell_checker.get_all_words_sorted()
-        
-        filtered = [w for w in words if w[0].startswith(search_term)][:100]
-        for word, freq in filtered:
-            self.word_listbox.insert(tk.END, f"{word} ({freq})")
-    
-    def _on_text_change(self, event):
-        """Handle text changes with debouncing"""
-        # Update character count
-        text = self.text_widget.get('1.0', 'end-1c')
-        char_count = len(text)
-        self.char_label.config(text=f"Characters: {char_count}/500")
-        
-        # Limit to 500 characters
-        if char_count > Config.MAX_TEXT_LENGTH:
-            self.text_widget.delete('1.0', 'end')
-            self.text_widget.insert('1.0', text[:Config.MAX_TEXT_LENGTH])
-            return
-        
-        # Debounced spell check
-        if self.check_timer:
-            self.root.after_cancel(self.check_timer)
-        
-        self.check_timer = self.root.after(500, self._auto_check_spelling)
-    
-    def _auto_check_spelling(self):
-        """Automatically check spelling in real-time"""
-        if not self.spell_checker.is_trained:
-            return
-        
-        # Clear previous highlights
-        self.text_widget.tag_remove('misspelled', '1.0', 'end')
-        self.misspelled_words.clear()
-        
-        text = self.text_widget.get('1.0', 'end-1c')
-        text = self.preprocessor.preprocess_for_checking(text)
-        words = re.finditer(r'\b[a-zA-Z]+\b', text)
-        
-        # NOTE: _get_context_from_indices is a class method below moved out
-
-        for match in words:
-            word = match.group()
-            start_idx = match.start()
-            end_idx = match.end()
-            # If word is not in vocabulary: classic non-word error
-            if not self.spell_checker.check_word(word):
-                start_txt = f"1.0+{start_idx}c"
-                end_txt = f"1.0+{end_idx}c"
-                self.text_widget.tag_add('misspelled', start_txt, end_txt)
-                self.misspelled_words[word] = (start_txt, end_txt)
-            else:
-                # Active real-word detection for common confusions
-                prev_word, next_word = self._get_context_from_indices(text, start_idx, end_idx)
-                alt = self.spell_checker.suggestion_service.realword_detector.check_confusion(
-                    word.lower(), prev_word, next_word, self.spell_checker.language_model
-                )
-                if alt:
-                    start_txt = f"1.0+{start_idx}c"
-                    end_txt = f"1.0+{end_idx}c"
-                    self.text_widget.tag_add('misspelled', start_txt, end_txt)
-                    self.misspelled_words[word] = (start_txt, end_txt)
-    
-    def _on_word_click(self, event):
-        """Show suggestions when clicking on misspelled word"""
-        try:
-            index = self.text_widget.index(f"@{event.x},{event.y}")
-            
-            # Get clicked word
-            line, col = map(int, index.split('.'))
-            line_text = self.text_widget.get(f"{line}.0", f"{line}.end")
-            
-            # Find word at cursor
-            start = col
-            while start > 0 and line_text[start-1].isalpha():
-                start -= 1
-            
-            end = col
-            while end < len(line_text) and line_text[end].isalpha():
-                end += 1
-            
-            word = line_text[start:end]
-            
-            if word and word in self.misspelled_words:
-                self._show_suggestions(word, event)
-        
-        except:
-            pass
-
-    def _get_context_from_indices(self, text: str, start_idx: int, end_idx: int) -> Tuple[Optional[str], Optional[str]]:
-        """Extract previous and next words from text based on character indices"""
-        pre = text[:start_idx]
-        post = text[end_idx:]
-        prev_words = re.findall(r'\b\w+\b', pre)
-        next_words = re.findall(r'\b\w+\b', post)
-        prev_word = prev_words[-1] if prev_words else None
-        next_word = next_words[0] if next_words else None
-        return prev_word, next_word
-    
-    def _show_suggestions(self, word: str, event):
-        """Show suggestion popup for misspelled word"""
-        text = self.text_widget.get('1.0', 'end-1c')
-        suggestions = self.spell_checker.get_suggestions(word, text)
-        
-        if not suggestions:
-            return
-        
-        # Create popup menu
-        popup = tk.Menu(self.root, tearoff=0)
-        
-        for sug in suggestions[:5]:
-            label = f"{sug.corrected} (distance: {sug.edit_distance}, confidence: {sug.confidence:.2f})"
-            if getattr(sug, 'reason', None):
-                label += f" — {sug.reason}"
-            popup.add_command(
-                label=label,
-                command=lambda s=sug: self._apply_suggestion(s)
-            )
-        
-        popup.add_separator()
-        popup.add_command(label="Ignore", command=popup.destroy)
-        
-        try:
-            popup.tk_popup(event.x_root, event.y_root)
-        finally:
-            popup.grab_release()
-    
-    def _apply_suggestion(self, suggestion: Suggestion):
-        """Replace misspelled word with suggestion"""
-        if suggestion.original in self.misspelled_words:
-            start_idx, end_idx = self.misspelled_words[suggestion.original]
-            
-            self.text_widget.delete(start_idx, end_idx)
-            self.text_widget.insert(start_idx, suggestion.corrected)
-            
-            # Show brief success feedback
-            self.text_widget.tag_add('corrected', start_idx, 
-                                    f"{start_idx}+{len(suggestion.corrected)}c")
-            self.root.after(1000, lambda: self.text_widget.tag_remove('corrected', '1.0', 'end'))
-            
-            # Re-check spelling
-            self.root.after(100, self._auto_check_spelling)
-    
-    def _auto_correct_all(self):
-        """Auto-correct all misspelled words"""
-        if not self.misspelled_words:
-            messagebox.showinfo("Info", "No misspelled words found.")
-            return
-        
-        text = self.text_widget.get('1.0', 'end-1c')
-        corrections_made = 0
-        
-        for word in list(self.misspelled_words.keys()):
-            suggestions = self.spell_checker.get_suggestions(word, text)
-            if suggestions:
-                best_suggestion = suggestions[0]
-                text = re.sub(r'\b' + word + r'\b', best_suggestion.corrected, text, count=1)
-                corrections_made += 1
-        
-        # Update text widget
-        self.text_widget.delete('1.0', 'end')
-        self.text_widget.insert('1.0', text)
-        
-        messagebox.showinfo("Success", f"Corrected {corrections_made} words.")
-        self._auto_check_spelling()
-    
-    def _clear_text(self):
-        """Clear all text from editor"""
-        if self.text_widget.get('1.0', 'end-1c').strip():
-            if messagebox.askyesno("Confirm", "Clear all text?"):
-                self.text_widget.delete('1.0', 'end')
-                self.misspelled_words.clear()
-                self.char_label.config(text="Characters: 0/500")
-        else:
-            self.text_widget.delete('1.0', 'end')
-    
-    def run(self):
-        """Start the GUI application"""
-        self.root.mainloop()
-
-# ============================================================================
-# MAIN ENTRY POINT
-# ============================================================================
-
-
-
-# ============================================================================
 # STREAMLIT WEB DEPLOYMENT
 # ============================================================================
 
 def create_streamlit_app():
-    """Professional Streamlit web deployment for spelling correction"""
+    """Professional Streamlit deployment for spelling correction"""
     try:
         import streamlit as st
     except ImportError:
         print("Error: Streamlit not installed. Run: pip install streamlit")
         return
     
+    # Page configuration
     st.set_page_config(
-        page_title="Spelling Correction System",
-        layout="wide",
-        initial_sidebar_state="expanded"
+        page_title="Advanced Spelling Correction System",
+        page_icon="✍️",
+        layout="wide"
     )
     
-    # CSS with proper rendering (no code display issues)
-    st.markdown("""
-        <style>
-        /* Background colors */
-        .main {
-            background-color: #f8f9fa !important;
-        }
-        
-        .stApp {
-            background-color: #f8f9fa !important;
-        }
-        
-        [data-testid="stAppViewContainer"] {
-            background-color: #f8f9fa !important;
-        }
-        
-        /* Global text color - ensure all text is dark */
-        * {
-            color: #1f2937 !important;
-        }
-        
-        /* Hide Streamlit branding */
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-        
-        /* Headings */
-        h1, h2, h3, h4, h5, h6 {
-            color: #1f2937 !important;
-        }
-        
-        /* Paragraph and general text */
-        p, span, div, label, button {
-            color: #1f2937 !important;
-        }
-        
-        /* Captions and small text */
-        .stCaption, caption {
-            color: #6b7280 !important;
-        }
-        
-        /* Main header */
-        .main-header {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .main-header h1, .main-header h2, .main-header p {
-            color: white !important;
-        }
-        
-        /* Text area styling */
-        .stTextArea textarea {
-            background-color: white !important;
-            color: #1f2937 !important;
-            border: 2px solid #d1d5db !important;
-            border-radius: 8px !important;
-            font-size: 1rem !important;
-            padding: 1rem !important;
-        }
-        
-        .stTextArea textarea::placeholder {
-            color: #9ca3af !important;
-        }
-        
-        .stTextArea textarea:focus {
-            border-color: #2563eb !important;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
-        }
-        
-        /* Text input styling */
-        .stTextInput input {
-            background-color: white !important;
-            color: #1f2937 !important;
-            border: 2px solid #d1d5db !important;
-            border-radius: 6px !important;
-        }
-        
-        .stTextInput input::placeholder {
-            color: #9ca3af !important;
-        }
-        
-        .stTextInput input:focus {
-            border-color: #2563eb !important;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
-        }
-        
-        /* Button styling */
-        .stButton button {
-            border-radius: 6px !important;
-            font-weight: 500 !important;
-            padding: 0.5rem 1.5rem !important;
-            background-color: white !important;
-            color: #1f2937 !important;
-            border: 1px solid #d1d5db !important;
-        }
-        
-        .stButton button:hover {
-            background-color: #f3f4f6 !important;
-            color: #1f2937 !important;
-        }
-        
-        /* Expander */
-        div[data-testid="stExpander"] {
-            background-color: white !important;
-            border: 1px solid #e5e7eb !important;
-            border-radius: 6px !important;
-            margin-bottom: 0.5rem !important;
-        }
-        
-        .streamlit-expanderHeader {
-            color: #1f2937 !important;
-        }
-        
-        /* Metrics */
-        .stMetric {
-            background-color: white !important;
-            border-radius: 8px !important;
-            padding: 1rem !important;
-        }
-        
-        .stMetric label {
-            color: #6b7280 !important;
-        }
-        
-        .stMetric .metric-value {
-            color: #1f2937 !important;
-        }
-        
-        /* Subheaders and markdown */
-        .stMarkdown h2, .stMarkdown h3 {
-            color: #1f2937 !important;
-        }
-        
-        .stMarkdown p, .stMarkdown span {
-            color: #1f2937 !important;
-        }
-        
-        /* Container text */
-        .stContainer {
-            color: #1f2937 !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    # Simple title
+    st.title("✍️ Advanced Spelling Correction System")
+    st.caption("Natural Language Processing Assignment - Part A, Question 1")
     
-    # Header
-    st.markdown('<div class="main-header"><h1 style="margin:0; font-size:2rem;">Advanced Spelling Correction System</h1><p style="margin:0.5rem 0 0 0;">NLP Assignment - Part A, Question 1</p></div>', unsafe_allow_html=True)
-    
-    # Session state
+    # Session state initialization
     if 'input_text' not in st.session_state:
         st.session_state.input_text = ""
     if 'last_checked' not in st.session_state:
         st.session_state.last_checked = ""
     if 'errors' not in st.session_state:
         st.session_state.errors = []
+    if 'correction_count' not in st.session_state:
+        st.session_state.correction_count = 0
+    if 'show_features' not in st.session_state:
+        st.session_state.show_features = False
+    if 'debug_log' not in st.session_state:
+        st.session_state.debug_log = "[DEBUG] Session initialized"
     
     # Load spell checker
     @st.cache_resource
@@ -2173,206 +1601,303 @@ def create_streamlit_app():
     # Layout
     col_main, col_sidebar = st.columns([2, 1])
     
-    # MAIN COLUMN
+    # ========================================================================
+    # LEFT COLUMN - TEXT EDITOR & RESULTS
+    # ========================================================================
     with col_main:
-        st.subheader("Text Editor")
+        st.markdown("### 📝 Text Editor")
         
-        # Example buttons
+        # Example buttons in one row
+        st.markdown("**Quick Examples:**")
         c1, c2, c3, c4 = st.columns(4)
+        
         with c1:
-            if st.button("Non-word Example", use_container_width=True):
-                st.session_state.input_text = "I recieved the grammer report seperate from the accomodation."
-                st.session_state.last_checked = ""
+            if st.button("Non-word", use_container_width=True):
+                example_text = "I recieved the grammer report seperate from the accomodation. The occurance was definately wierd and embarassing."
+                st.session_state.input_text = example_text
                 st.session_state.errors = []
+                st.session_state.last_checked = ""
+                st.session_state.debug_log = f"[DEBUG] Non-word button clicked. Set text to: '{example_text}'"
                 st.rerun()
+        
         with c2:
-            if st.button("Real-word Example", use_container_width=True):
-                st.session_state.input_text = "I went too the store to buy there groceries."
-                st.session_state.last_checked = ""
+            if st.button("Real-word", use_container_width=True):
+                example_text = "I went too the store to buy there groceries. They said there going to the park tomorrow. Its better then before."
+                st.session_state.input_text = example_text
                 st.session_state.errors = []
+                st.session_state.last_checked = ""
+                st.session_state.debug_log = f"[DEBUG] Real-word button clicked. Set text to: '{example_text}'"
                 st.rerun()
+        
         with c3:
-            if st.button("Medical Example", use_container_width=True):
-                st.session_state.input_text = "The patiant has symtoms of diabetis and hypertention."
-                st.session_state.last_checked = ""
+            if st.button("Medical", use_container_width=True):
+                example_text = "The patiant complained of servere headake and was diagnosed with diabetis and hypertention. The symtoms were monitered closely by the docktor."
+                st.session_state.input_text = example_text
                 st.session_state.errors = []
+                st.session_state.last_checked = ""
+                st.session_state.debug_log = f"[DEBUG] Medical button clicked. Set text to: '{example_text}'"
                 st.rerun()
+        
         with c4:
             if st.button("Clear", use_container_width=True):
                 st.session_state.input_text = ""
                 st.session_state.errors = []
                 st.session_state.last_checked = ""
+                st.session_state.debug_log = "[DEBUG] Clear button clicked. Text cleared."
                 st.rerun()
         
-        # Text input with auto-check
+        st.markdown("")  # Spacing
+        
+        # Text area - use session state directly
         user_input = st.text_area(
-            "Enter text (max 500 characters)",
+            "Enter your text (max 500 characters)",
             value=st.session_state.input_text,
             height=180,
             max_chars=500,
-            placeholder="Type here. Spelling checks automatically."
+            placeholder="Type or paste your text here. Click 'Check Spelling' to find errors.",
+            label_visibility="visible"
         )
         
-        # Update session state with current input
-        st.session_state.input_text = user_input
+        # Update session state and add debug info
+        if user_input != st.session_state.input_text:
+            st.session_state.input_text = user_input
+            st.session_state.debug_log = f"[DEBUG] Text changed to: '{user_input[:50]}...'" if len(user_input) > 50 else f"[DEBUG] Text changed to: '{user_input}'"
         
-        st.caption(f"Characters: {len(user_input)}/500")
+        # Debug panel
+        if st.session_state.debug_log:
+            with st.expander("🐛 Debug Info", expanded=False):
+                st.text(st.session_state.debug_log)
+                st.text(f"Current session_state.input_text: '{st.session_state.input_text}'")
+                st.text(f"Current user_input variable: '{user_input}'")
+                st.text(f"Number of errors in session: {len(st.session_state.errors)}")
         
-        # Auto spell-check on text change
-        if user_input.strip() and user_input != st.session_state.last_checked:
-            st.session_state.last_checked = user_input
-            
-            words = re.findall(r'\b[a-zA-Z]+\b', user_input)
-            errors_found = []
-            
-            for word in words:
-                suggestions = spell_checker.get_suggestions(word, user_input)
+        # Character counter
+        char_count = len(user_input)
+        st.caption(f"Characters: {char_count}/500")
+        
+        # Action buttons
+        act_col1, act_col2 = st.columns(2)
+        with act_col1:
+            check_clicked = st.button("🔍 Check Spelling", type="primary", use_container_width=True)
+        with act_col2:
+            correct_clicked = st.button("✨ Auto-Correct All", use_container_width=True)
+        
+        # Handle spell checking
+        if check_clicked:
+            if user_input.strip():
+                with st.spinner("Analyzing text..."):
+                    import time
+                    start = time.time()
+                    
+                    st.session_state.last_checked = user_input
+                    words = re.findall(r'\b[a-zA-Z]+\b', user_input)
+                    errors_found = []
+                    
+                    st.session_state.debug_log = f"[DEBUG] Check Spelling clicked. Found {len(words)} words to check: {words}"
+                    
+                    for word in words:
+                        is_valid = spell_checker.check_word(word)
+                        suggestions = spell_checker.get_suggestions(word, user_input)
+                        
+                        if not is_valid and suggestions:
+                            errors_found.append({
+                                'word': word,
+                                'type': 'non-word',
+                                'suggestions': suggestions[:3]
+                            })
+                        elif suggestions and len(suggestions) > 0:
+                            if hasattr(suggestions[0], 'source') and suggestions[0].source == 'realword':
+                                errors_found.append({
+                                    'word': word,
+                                    'type': 'real-word',
+                                    'suggestions': suggestions[:3]
+                                })
+                    
+                    st.session_state.errors = errors_found
+                    elapsed = time.time() - start
+                    
+                    st.session_state.debug_log += f" | Found {len(errors_found)} errors"
+                    st.caption(f"⏱️ Checked in {elapsed:.2f}s")
+                    st.rerun()
+            else:
+                st.info("Please enter some text to check")
+        
+        # Handle auto-correct
+        if correct_clicked:
+            if st.session_state.errors:
+                corrected = user_input
+                count = 0
+                corrections_made = []
                 
-                if not spell_checker.check_word(word) and suggestions:
-                    errors_found.append({
-                        'word': word,
-                        'type': 'non-word',
-                        'suggestions': suggestions[:3]
-                    })
-                elif suggestions and hasattr(suggestions[0], 'source') and suggestions[0].source == 'realword':
-                    errors_found.append({
-                        'word': word,
-                        'type': 'real-word',
-                        'suggestions': suggestions[:3]
-                    })
-            
-            st.session_state.errors = errors_found
-        elif not user_input.strip():
-            # Clear errors if text is empty
-            st.session_state.errors = []
+                st.session_state.debug_log = f"[DEBUG] Auto-correct clicked. Starting with text: '{corrected}'"
+                
+                for error in st.session_state.errors:
+                    if error['suggestions']:
+                        best = error['suggestions'][0].corrected
+                        old_corrected = corrected
+                        corrected = re.sub(r'\b' + re.escape(error['word']) + r'\b', 
+                                         best, corrected, count=1)
+                        if old_corrected != corrected:
+                            corrections_made.append(f"{error['word']} → {best}")
+                            count += 1
+                
+                st.session_state.input_text = corrected
+                st.session_state.errors = []
+                st.session_state.correction_count = count
+                st.session_state.debug_log += f" | Made {count} corrections: {corrections_made}"
+                st.success(f"✓ Corrected {count} error(s)")
+                st.rerun()
+            else:
+                st.warning("No errors to correct. Click 'Check Spelling' first.")
+                st.session_state.debug_log = "[DEBUG] Auto-correct clicked but no errors found"
         
         # Display results
-        if st.session_state.errors:
-            st.error(f"Found {len(st.session_state.errors)} spelling error(s)")
+        st.markdown("---")
+        
+        if not user_input.strip():
+            st.info("ℹ️ Ready to check spelling - Enter text above and click 'Check Spelling' to begin")
+        
+        elif st.session_state.errors:
+            # Show error summary
+            error_count = len(st.session_state.errors)
+            st.warning(f"⚠️ Found {error_count} spelling error(s) - Review suggestions below and apply corrections")
             
-            ca, cb, cc = st.columns([1, 1, 2])
-            with ca:
-                if st.button("Auto-Correct All", type="primary", use_container_width=True):
-                    corrected = user_input
-                    for err in st.session_state.errors:
-                        if err['suggestions']:
-                            corrected = re.sub(r'\b' + err['word'] + r'\b', err['suggestions'][0].corrected, corrected, count=1)
-                    st.session_state.input_text = corrected
-                    st.session_state.errors = []
-                    st.success(f"Corrected {len(st.session_state.errors)} error(s)")
-                    st.rerun()
-            with cb:
-                if st.button("Dismiss", use_container_width=True):
-                    st.session_state.errors = []
-                    st.rerun()
+            st.markdown("### 📋 Detected Errors")
             
-            st.markdown("---")
-            st.subheader("Detected Errors")
-            
-            for idx, err in enumerate(st.session_state.errors):
-                badge = "Non-word" if err['type'] == 'non-word' else "Real-word"
+            # Display each error in an expander
+            for idx, error in enumerate(st.session_state.errors):
+                error_type = "Non-word Error" if error['type'] == 'non-word' else "Real-word Error"
+                badge_color = "#e74c3c" if error['type'] == 'non-word' else "#f39c12"
                 
-                with st.expander(f"{err['word']} ({badge})", expanded=(idx < 2)):
-                    if err['suggestions']:
-                        for i, sug in enumerate(err['suggestions'], 1):
+                with st.expander(f"**{error['word']}** ({error_type})", expanded=(idx < 2)):
+                    if error['suggestions']:
+                        st.markdown("**Suggestions:**")
+                        
+                        for i, sug in enumerate(error['suggestions'], 1):
                             conf_pct = sug.confidence * 100
-                            color = "#22c55e" if sug.confidence > 0.7 else "#f59e0b" if sug.confidence > 0.5 else "#ef4444"
                             
-                            st.markdown(f"**{i}. {sug.corrected}** - <span style='color:{color}'>Confidence: {conf_pct:.0f}%</span>", unsafe_allow_html=True)
-                            st.caption(f"Edit distance: {sug.edit_distance} | {sug.reason if hasattr(sug, 'reason') else ''}")
+                            # Display suggestion with progress bar
+                            st.markdown(f"**{i}. {sug.corrected}**")
+                            st.progress(sug.confidence, text=f"{conf_pct:.0f}% confidence")
                             
-                            if st.button(f"Apply '{sug.corrected}'", key=f"btn_{idx}_{i}"):
-                                st.session_state.input_text = re.sub(r'\b' + err['word'] + r'\b', sug.corrected, st.session_state.input_text, count=1)
-                                st.session_state.errors = [e for e in st.session_state.errors if e['word'] != err['word']]
+                            reason = sug.reason if hasattr(sug, 'reason') and sug.reason else 'Similar spelling'
+                            st.caption(f"📏 Edit distance: {sug.edit_distance} | {reason}")
+                            
+                            # Apply button with proper debugging
+                            apply_button_key = f"apply_{error['word']}_{idx}_{i}_{len(st.session_state.input_text)}"
+                            if st.button(f"Apply '{sug.corrected}'", key=apply_button_key):
+                                old_text = st.session_state.input_text
+                                new_text = re.sub(r'\b' + re.escape(error['word']) + r'\b', 
+                                                sug.corrected, st.session_state.input_text, count=1)
+                                
+                                # Update session state
+                                st.session_state.input_text = new_text
+                                st.session_state.errors = [e for e in st.session_state.errors 
+                                                          if e['word'] != error['word']]
+                                st.session_state.debug_log = f"[DEBUG] Applied correction: '{error['word']}' → '{sug.corrected}' | Old: '{old_text}' | New: '{new_text}'"
+                                st.success(f"Applied: {error['word']} → {sug.corrected}")
                                 st.rerun()
-        elif user_input.strip():
-            st.success("No spelling errors detected")
-        else:
-            st.info("Enter text to check spelling")
+                            
+                            if i < len(error['suggestions']):
+                                st.markdown("")  # Spacing
+        
+        elif st.session_state.last_checked == user_input and user_input.strip():
+            st.success("✓ No spelling errors detected - Your text looks good!")
     
-    # SIDEBAR
+    # ========================================================================
+    # RIGHT COLUMN - STATISTICS & DICTIONARY
+    # ========================================================================
     with col_sidebar:
-        if spell_checker.is_trained:
+        # System statistics
+        st.markdown("### 📊 System Statistics")
+        
+        # Get system information
+        if hasattr(spell_checker, 'is_trained') and spell_checker.is_trained:
             vocab_size = len(spell_checker.vocabulary)
             corpus_size = spell_checker.language_model.total_words
+        else:
+            vocab_size = 0
+            corpus_size = 0
+        
+        met_col1, met_col2 = st.columns(2)
+        with met_col1:
+            st.metric("Vocabulary", f"{vocab_size:,}")
+        with met_col2:
+            st.metric("Corpus Size", f"{corpus_size:,}")
+        
+        st.markdown("---")
+        
+        # System features
+        st.markdown("### ⚙️ System Features")
+        
+        if st.button("Show Features" if not st.session_state.show_features else "Hide Features", 
+                    use_container_width=True):
+            st.session_state.show_features = not st.session_state.show_features
+            st.rerun()
+        
+        if st.session_state.show_features:
+            features = [
+                ("Edit Distance", "Levenshtein & Damerau"),
+                ("Context Model", "Bigram & Trigram"),
+                ("Real-word Detection", "Enabled"),
+                ("Domain", "Medical vocabulary"),
+                ("Dictionary", "PyEnchant + Corpus")
+            ]
             
-            # Statistics
-            st.subheader("System Statistics")
-            
-            st.metric("Vocabulary Size", f"{vocab_size:,}", help="Unique words in dictionary")
-            st.metric("Corpus Size", f"{corpus_size:,}", help="Total training words")
-            
-            st.markdown("---")
-            
-            # Features
-            st.subheader("System Features")
-            
-            features_data = {
-                "Edit Distance": "Levenshtein & Damerau",
-                "Context Model": "Bigram & Trigram",
-                "Real-word Detection": "Enabled",
-                "Domain": "Medical vocabulary",
-                "Dictionary": "PyEnchant + Corpus"
-            }
-            
-            for label, value in features_data.items():
-                col_label, col_value = st.columns([1, 1])
-                with col_label:
-                    st.caption(label)
-                with col_value:
-                    st.markdown(f"**{value}**")
-            
-            st.markdown("---")
-            
-            # Word Dictionary
-            st.subheader("Word Dictionary")
-            
-            search = st.text_input("Search words", placeholder="Type to filter...", label_visibility="collapsed")
-            
+            for label, value in features:
+                st.markdown(f"**{label}:** {value}")
+        
+        st.markdown("---")
+        
+        # Word dictionary
+        st.markdown("### 📚 Word Dictionary")
+        
+        search = st.text_input("Search words", 
+                              placeholder="Type to filter...",
+                              label_visibility="collapsed")
+        
+        if hasattr(spell_checker, 'get_all_words_sorted'):
             all_words = spell_checker.get_all_words_sorted()
             
             if search:
-                filtered = [(w, f) for w, f in all_words if w.startswith(search.lower())][:30]
+                filtered = [(w, f) for w, f in all_words if w.startswith(search.lower())][:50]
             else:
-                filtered = all_words[:30]
+                filtered = all_words[:50]
             
             st.caption(f"Showing {len(filtered)} of {len(all_words):,} words")
             
-            # Display words in container
-            with st.container():
-                for word, freq in filtered:
-                    st.text(f"{word:20} ({freq})")
-            
-            st.markdown("---")
-            
-            # Requirements
-            st.subheader("Requirements Met")
-            
-            requirements = [
-                ("500 char editor", True),
-                ("GUI interface", True),
-                ("Non-word detection", True),
-                ("Real-word detection", True),
-                ("Bigram model", True),
-                ("Edit distance", True),
-                ("Dictionary search", True),
-                ("100k+ corpus", corpus_size >= 100000)
-            ]
-            
-            for req, met in requirements:
-                icon = "✓" if met else "○"
-                color = "green" if met else "gray"
-                st.markdown(f":{color}[{icon}] {req}")
+            # Dictionary display
+            for word, freq in filtered:
+                st.text(f"{word:20} ({freq})")
+        else:
+            st.caption("Dictionary not loaded")
+        
+        st.markdown("---")
+        
+        # Requirements checklist
+        st.markdown("### ✅ Requirements Met")
+        
+        requirements = [
+            ("500 char editor", True),
+            ("GUI interface", True),
+            ("Non-word detection", True),
+            ("Real-word detection", True),
+            ("Bigram model", True),
+            ("Edit distance", True),
+            ("Dictionary search", True),
+            ("100k+ corpus", corpus_size >= 100000)
+        ]
+        
+        for req, met in requirements:
+            icon = "✅" if met else "⭕"
+            st.markdown(f"{icon} {req}")
     
     # Footer
     st.markdown("---")
-    st.markdown("""
-        <div style='text-align: center; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb;'>
-            <strong>Natural Language Processing Assignment</strong><br>
-            Part A - Question 1 | Spelling Correction System<br>
-            <small>Built with Streamlit, NLTK & PyEnchant</small>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown("**Natural Language Processing Assignment**")
+    st.markdown("Part A - Question 1 | Spelling Correction System")
+    st.caption("Built with Streamlit, NLTK & PyEnchant")
+    st.caption(f"Corpus: Medical ({corpus_size:,} words) | Model: Bigram + Trigram")
 
 
 # ============================================================================
@@ -2382,9 +1907,9 @@ def create_streamlit_app():
 def main():
     """Main entry point for the application"""
     parser = argparse.ArgumentParser(description='Advanced Spelling Correction System')
-    parser.add_argument('--mode', type=str, default='gui', 
-                       choices=['gui', 'train'],
-                       help='Mode: gui (Tkinter) or train (train only)')
+    parser.add_argument('--mode', type=str, default='streamlit', 
+                       choices=['streamlit', 'train'],
+                       help='Mode: streamlit (web app) or train (train only)')
     parser.add_argument('--force-download', action='store_true')
     parser.add_argument('--skip-synthetic-detection', action='store_true')
     args = parser.parse_args()
@@ -2404,12 +1929,8 @@ def main():
         print("ADVANCED SPELLING CORRECTION SYSTEM")
         print("NLP Assignment - Part A, Question 1")
         print("=" * 70)
-        print("\nLaunching Tkinter GUI...")
-        app = SpellCheckerGUI(
-            force_download=args.force_download,
-            download_if_synthetic=not args.skip_synthetic_detection
-        )
-        app.run()
+        print("\nStarting Streamlit application...")
+        print("Please run: streamlit run spell_correction_system.py")
 
 if __name__ == "__main__":
     # Check if running in Streamlit

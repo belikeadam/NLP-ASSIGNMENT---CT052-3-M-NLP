@@ -1,17 +1,20 @@
 # ============================================================================
-# REQUIREMENTS.TXT - Spelling Correction System
+# REQUIREMENTS.TXT - Spelling Correction System (Streamlit Web App)
 # Natural Language Processing Assignment - Part A, Question 1
 # ============================================================================
 
 # Core NLP Library
 nltk>=3.8.0,<4.0.0
 
+# Web Framework
+streamlit>=1.28.0
+plotly>=5.0.0
+
 # Optional: For downloading medical corpus from Kaggle
 kagglehub>=0.1.0
 pyenchant>=3.2.0
 
 # Standard Library (included with Python, no installation needed):
-# - tkinter (GUI framework)
 # - pickle (model persistence)
 # - re (regular expressions)
 # - json (data serialization)

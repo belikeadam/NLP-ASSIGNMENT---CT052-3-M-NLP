@@ -1,10 +1,10 @@
-# How to Run - Advanced Spelling Correction System
+# How to Run - Advanced Spelling Correction System (Streamlit Web App)
 
 ## Quick Start
 
-### 1. Check Dependencies
+### 1. Install Dependencies
 ```bash
-python check_spell_dependencies.py
+pip install -r requirements.txt
 ```
 
 Note: PyEnchant is recommended for best accuracy. Install it with:
@@ -12,9 +12,17 @@ Note: PyEnchant is recommended for best accuracy. Install it with:
 pip install pyenchant
 ```
 
-### 2. Run the Application
+### 2. Run the Streamlit Web Application
 ```bash
-python spell_correction_system.py
+streamlit run spell_correction_system.py
+```
+
+This will open the web application in your default browser at `http://localhost:8501`
+
+### Optional: Training Mode Only
+If you want to pre-train the model without opening the web interface:
+```bash
+python spell_correction_system.py --mode train
 ```
 
 ### Optional: Force real Kaggle download
@@ -31,21 +39,23 @@ python spell_correction_system.py --skip-synthetic-detection
 
 - **First Run**: The system will download/generate a medical corpus and train the language model (takes ~10-30 seconds)
 - **Subsequent Runs**: Loads from cache instantly
-- **GUI**: Opens a professional spelling correction interface
+- **Web Interface**: Opens a clean, professional Streamlit web application
 
 ## Features Available
 
-- **Real-time spell checking** with red underlines
-- **Right-click misspelled words** for suggestions
+- **Interactive web interface** with real-time spell checking
+- **Click buttons to apply suggestions** for corrections
 - **Auto-correct all** button for bulk corrections
 - **Word dictionary browser** with search functionality
 - **500 character limit** per session
+- **Example buttons** for quick testing
 
 ## System Requirements
 
 - Python 3.7+
+- Streamlit
 - NLTK library
-- Tkinter (usually pre-installed with Python)
+- Plotly (for enhanced UI components)
 
 ## Troubleshooting
 
