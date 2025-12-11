@@ -1553,6 +1553,132 @@ class TextPreprocessor:
 # STREAMLIT WEB DEPLOYMENT
 # ============================================================================
 
+def inject_custom_css():
+    """Inject custom CSS for modern UI styling"""
+    st.markdown("""
+    <style>
+    /* Main app styling */
+    .main {
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+        min-height: 100vh;
+    }
+    
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        max-width: 1400px;
+    }
+    
+    /* Hide Streamlit defaults */
+    #MainMenu, footer, header {visibility: hidden;}
+    
+    /* Card components */
+    div[data-testid="stVerticalBlock"] > div:has(div.element-container) {
+        background: rgba(30, 41, 59, 0.5);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(100, 116, 139, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 12px;
+    }
+    
+    /* Buttons - Base styles */
+    .stButton>button {
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+    }
+    
+    .stButton>button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    /* Primary button (Check Spelling) */
+    button[kind="primary"] {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+        color: white !important;
+        border: none !important;
+    }
+    
+    button[kind="primary"]:hover:not(:disabled) {
+        background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4) !important;
+    }
+    
+    /* Secondary button (Auto-Correct All) - Green outline */
+    .stButton>button:not([kind="primary"]) {
+        background: transparent !important;
+        border: 2px solid #10b981 !important;
+        color: #10b981 !important;
+    }
+    
+    .stButton>button:not([kind="primary"]):hover:not(:disabled) {
+        background: rgba(16, 185, 129, 0.1) !important;
+        border-color: #059669 !important;
+        color: #059669 !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    }
+    
+    /* Disabled button styling */
+    .stButton>button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* Text area */
+    .stTextArea>div>div>textarea {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border: 1px solid rgba(100, 116, 139, 0.5) !important;
+        color: white !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Metrics */
+    div[data-testid="stMetricValue"] {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #3b82f6;
+    }
+    
+    /* Expanders */
+    .streamlit-expanderHeader {
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid rgba(100, 116, 139, 0.3);
+        border-radius: 8px;
+        font-weight: 600;
+    }
+    
+    /* Success/Error boxes */
+    .stSuccess, .stWarning, .stError, .stInfo {
+        background: rgba(30, 41, 59, 0.5);
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+    }
+    
+    /* Text input styling */
+    .stTextInput>div>div>input {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border: 1px solid rgba(100, 116, 139, 0.5) !important;
+        color: white !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Progress bar styling */
+    .stProgress > div > div > div > div {
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    }
+    
+    /* Add spacing between sections */
+    .element-container {
+        margin-bottom: 0.5rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 def create_streamlit_app():
     """Professional Streamlit deployment for spelling correction"""
     try:
@@ -1568,9 +1694,8 @@ def create_streamlit_app():
         layout="wide"
     )
     
-    # Simple title
-    st.title("✍️ Advanced Spelling Correction System")
-    st.caption("Natural Language Processing Assignment - Part A, Question 1")
+    # Inject custom CSS
+    inject_custom_css()
     
     # Session state initialization
     if 'input_text' not in st.session_state:
@@ -1598,6 +1723,34 @@ def create_streamlit_app():
     
     spell_checker = load_checker()
     
+    # Get system information for header
+    if hasattr(spell_checker, 'is_trained') and spell_checker.is_trained:
+        vocab_size = len(spell_checker.vocabulary)
+        corpus_size = spell_checker.language_model.total_words
+    else:
+        vocab_size = 0
+        corpus_size = 0
+    
+    # Sticky Header
+    st.markdown(f"""
+    <div style="background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); 
+                border-bottom: 1px solid rgba(100, 116, 139, 0.2); 
+                padding: 20px; margin: -1rem -1rem 2rem -1rem; position: sticky; top: 0; z-index: 999;">
+        <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto;">
+            <div>
+                <h1 style="margin: 0; color: white; font-size: 1.5rem;">✍️ Advanced Spelling Correction</h1>
+                <p style="margin: 0; color: #94a3b8; font-size: 0.875rem;">Natural Language Processing Assignment - Part A</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="margin: 0; color: #94a3b8; font-size: 0.875rem;">
+                    Vocabulary: <span style="color: #3b82f6; font-weight: 600;">{vocab_size:,}</span> | 
+                    Corpus: <span style="color: #3b82f6; font-weight: 600;">{corpus_size:,}</span> words
+                </p>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
     # Layout
     col_main, col_sidebar = st.columns([2, 1])
     
@@ -1608,11 +1761,11 @@ def create_streamlit_app():
         st.markdown("### 📝 Text Editor")
         
         # Example buttons in one row
-        st.markdown("**Quick Examples:**")
+        st.markdown("**📚 Quick Examples:**")
         c1, c2, c3, c4 = st.columns(4)
         
         with c1:
-            if st.button("Non-word", use_container_width=True):
+            if st.button("📝 Non-word", use_container_width=True):
                 example_text = "I recieved the grammer report seperate from the accomodation. The occurance was definately wierd and embarassing."
                 st.session_state.input_text = example_text
                 st.session_state.errors = []
@@ -1621,7 +1774,7 @@ def create_streamlit_app():
                 st.rerun()
         
         with c2:
-            if st.button("Real-word", use_container_width=True):
+            if st.button("🔄 Real-word", use_container_width=True):
                 example_text = "I went too the store to buy there groceries. They said there going to the park tomorrow. Its better then before."
                 st.session_state.input_text = example_text
                 st.session_state.errors = []
@@ -1630,7 +1783,7 @@ def create_streamlit_app():
                 st.rerun()
         
         with c3:
-            if st.button("Medical", use_container_width=True):
+            if st.button("⚕️ Medical", use_container_width=True):
                 example_text = "The patiant complained of servere headake and was diagnosed with diabetis and hypertention. The symtoms were monitered closely by the docktor."
                 st.session_state.input_text = example_text
                 st.session_state.errors = []
@@ -1639,20 +1792,21 @@ def create_streamlit_app():
                 st.rerun()
         
         with c4:
-            if st.button("Clear", use_container_width=True):
+            if st.button("🗑️ Clear", use_container_width=True):
                 st.session_state.input_text = ""
                 st.session_state.errors = []
                 st.session_state.last_checked = ""
                 st.session_state.debug_log = "[DEBUG] Clear button clicked. Text cleared."
                 st.rerun()
         
-        st.markdown("")  # Spacing
+        # Add spacing after quick examples
+        st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
         
         # Text area - use session state directly
         user_input = st.text_area(
             "Enter your text (max 500 characters)",
             value=st.session_state.input_text,
-            height=180,
+            height=250,
             max_chars=500,
             placeholder="Type or paste your text here. Click 'Check Spelling' to find errors.",
             label_visibility="visible"
@@ -1663,17 +1817,25 @@ def create_streamlit_app():
             st.session_state.input_text = user_input
             st.session_state.debug_log = f"[DEBUG] Text changed to: '{user_input[:50]}...'" if len(user_input) > 50 else f"[DEBUG] Text changed to: '{user_input}'"
         
-        # Debug panel
-        if st.session_state.debug_log:
-            with st.expander("🐛 Debug Info", expanded=False):
-                st.text(st.session_state.debug_log)
-                st.text(f"Current session_state.input_text: '{st.session_state.input_text}'")
-                st.text(f"Current user_input variable: '{user_input}'")
-                st.text(f"Number of errors in session: {len(st.session_state.errors)}")
-        
-        # Character counter
+        # Character counter with percentage-based color coding
         char_count = len(user_input)
-        st.caption(f"Characters: {char_count}/500")
+        char_limit = 500
+        percentage = (char_count / char_limit) * 100
+        
+        # Color based on usage percentage
+        if percentage < 70:
+            color = "#10b981"  # Green
+        elif percentage < 90:
+            color = "#f59e0b"  # Yellow/Orange
+        else:
+            color = "#ef4444"  # Red
+        
+        st.markdown(
+            f"""<div style='text-align: right; color: {color}; font-size: 0.875rem; margin-top: -8px;'>
+            📊 Characters: <strong>{char_count}</strong>/{char_limit}
+            </div>""",
+            unsafe_allow_html=True
+        )
         
         # Action buttons
         act_col1, act_col2 = st.columns(2)
@@ -1725,31 +1887,35 @@ def create_streamlit_app():
         # Handle auto-correct
         if correct_clicked:
             if st.session_state.errors:
-                corrected = user_input
-                count = 0
-                corrections_made = []
-                
-                st.session_state.debug_log = f"[DEBUG] Auto-correct clicked. Starting with text: '{corrected}'"
-                
-                for error in st.session_state.errors:
-                    if error['suggestions']:
-                        best = error['suggestions'][0].corrected
-                        old_corrected = corrected
-                        corrected = re.sub(r'\b' + re.escape(error['word']) + r'\b', 
-                                         best, corrected, count=1)
-                        if old_corrected != corrected:
-                            corrections_made.append(f"{error['word']} → {best}")
-                            count += 1
-                
-                st.session_state.input_text = corrected
-                st.session_state.errors = []
-                st.session_state.correction_count = count
-                st.session_state.debug_log += f" | Made {count} corrections: {corrections_made}"
-                st.success(f"✓ Corrected {count} error(s)")
-                st.rerun()
+                with st.spinner("✨ Applying corrections..."):
+                    corrected = user_input
+                    count = 0
+                    corrections_made = []
+                    
+                    st.session_state.debug_log = f"[DEBUG] Auto-correct clicked. Starting with text: '{corrected}'"
+                    
+                    for error in st.session_state.errors:
+                        if error['suggestions']:
+                            best = error['suggestions'][0].corrected
+                            old_corrected = corrected
+                            corrected = re.sub(r'\b' + re.escape(error['word']) + r'\b', 
+                                             best, corrected, count=1)
+                            if old_corrected != corrected:
+                                corrections_made.append(f"{error['word']} → {best}")
+                                count += 1
+                    
+                    st.session_state.input_text = corrected
+                    st.session_state.errors = []
+                    st.session_state.correction_count = count
+                    st.session_state.debug_log += f" | Made {count} corrections: {corrections_made}"
+                    
+                    # Show detailed success message
+                    st.success(f"✅ Successfully corrected {count} error(s)!")
+                    import time
+                    time.sleep(0.3)  # Brief pause to show message
+                    st.rerun()
             else:
-                st.warning("No errors to correct. Click 'Check Spelling' first.")
-                st.session_state.debug_log = "[DEBUG] Auto-correct clicked but no errors found"
+                st.warning("⚠️ No errors to correct. Click 'Check Spelling' first.")
         
         # Display results
         st.markdown("---")
@@ -1764,45 +1930,52 @@ def create_streamlit_app():
             
             st.markdown("### 📋 Detected Errors")
             
-            # Display each error in an expander
-            for idx, error in enumerate(st.session_state.errors):
-                error_type = "Non-word Error" if error['type'] == 'non-word' else "Real-word Error"
-                badge_color = "#e74c3c" if error['type'] == 'non-word' else "#f39c12"
-                
-                with st.expander(f"**{error['word']}** ({error_type})", expanded=(idx < 2)):
-                    if error['suggestions']:
-                        st.markdown("**Suggestions:**")
-                        
-                        for i, sug in enumerate(error['suggestions'], 1):
-                            conf_pct = sug.confidence * 100
+            # Use fixed-height container for scrolling
+            with st.container(height=350):
+                # Display each error in an expander
+                for idx, error in enumerate(st.session_state.errors):
+                    error_type = "Non-word Error" if error['type'] == 'non-word' else "Real-word Error"
+                    badge_color = "#e74c3c" if error['type'] == 'non-word' else "#f39c12"
+                    
+                    with st.expander(f"**{error['word']}** ({error_type})", expanded=(idx < 2)):
+                        if error['suggestions']:
+                            st.markdown("**Suggestions:**")
                             
-                            # Display suggestion with progress bar
-                            st.markdown(f"**{i}. {sug.corrected}**")
-                            st.progress(sug.confidence, text=f"{conf_pct:.0f}% confidence")
-                            
-                            reason = sug.reason if hasattr(sug, 'reason') and sug.reason else 'Similar spelling'
-                            st.caption(f"📏 Edit distance: {sug.edit_distance} | {reason}")
-                            
-                            # Apply button with proper debugging
-                            apply_button_key = f"apply_{error['word']}_{idx}_{i}_{len(st.session_state.input_text)}"
-                            if st.button(f"Apply '{sug.corrected}'", key=apply_button_key):
-                                old_text = st.session_state.input_text
-                                new_text = re.sub(r'\b' + re.escape(error['word']) + r'\b', 
-                                                sug.corrected, st.session_state.input_text, count=1)
+                            for i, sug in enumerate(error['suggestions'], 1):
+                                conf_pct = sug.confidence * 100
                                 
-                                # Update session state
-                                st.session_state.input_text = new_text
-                                st.session_state.errors = [e for e in st.session_state.errors 
-                                                          if e['word'] != error['word']]
-                                st.session_state.debug_log = f"[DEBUG] Applied correction: '{error['word']}' → '{sug.corrected}' | Old: '{old_text}' | New: '{new_text}'"
-                                st.success(f"Applied: {error['word']} → {sug.corrected}")
-                                st.rerun()
-                            
-                            if i < len(error['suggestions']):
-                                st.markdown("")  # Spacing
+                                # Use columns for better layout: details on left, button on right
+                                col_details, col_button = st.columns([7, 3])
+                                
+                                with col_details:
+                                    # Display suggestion with progress bar
+                                    st.markdown(f"**{i}. {sug.corrected}**")
+                                    st.progress(sug.confidence, text=f"{conf_pct:.0f}% confidence")
+                                    
+                                    reason = sug.reason if hasattr(sug, 'reason') and sug.reason else 'Similar spelling'
+                                    st.caption(f"📏 Edit distance: {sug.edit_distance} | {reason}")
+                                
+                                with col_button:
+                                    # Apply button aligned to the right
+                                    apply_button_key = f"apply_{error['word']}_{idx}_{i}_{len(st.session_state.input_text)}"
+                                    if st.button(f"✓ Apply", key=apply_button_key, use_container_width=True):
+                                        old_text = st.session_state.input_text
+                                        new_text = re.sub(r'\b' + re.escape(error['word']) + r'\b', 
+                                                        sug.corrected, st.session_state.input_text, count=1)
+                                        
+                                        # Update session state
+                                        st.session_state.input_text = new_text
+                                        st.session_state.errors = [e for e in st.session_state.errors 
+                                                                  if e['word'] != error['word']]
+                                        st.session_state.debug_log = f"[DEBUG] Applied correction: '{error['word']}' → '{sug.corrected}' | Old: '{old_text}' | New: '{new_text}'"
+                                        st.success(f"Applied: {error['word']} → {sug.corrected}")
+                                        st.rerun()
+                                
+                                if i < len(error['suggestions']):
+                                    st.markdown("---")  # Separator between suggestions
         
         elif st.session_state.last_checked == user_input and user_input.strip():
-            st.success("✓ No spelling errors detected - Your text looks good!")
+            st.success("✅ No spelling errors detected - Your text looks good!")
     
     # ========================================================================
     # RIGHT COLUMN - STATISTICS & DICTIONARY
@@ -1811,14 +1984,7 @@ def create_streamlit_app():
         # System statistics
         st.markdown("### 📊 System Statistics")
         
-        # Get system information
-        if hasattr(spell_checker, 'is_trained') and spell_checker.is_trained:
-            vocab_size = len(spell_checker.vocabulary)
-            corpus_size = spell_checker.language_model.total_words
-        else:
-            vocab_size = 0
-            corpus_size = 0
-        
+        # Get system information (already fetched earlier)
         met_col1, met_col2 = st.columns(2)
         with met_col1:
             st.metric("Vocabulary", f"{vocab_size:,}")
@@ -1827,19 +1993,19 @@ def create_streamlit_app():
         
         st.markdown("---")
         
-        # System features
+        # System features with toggle
         st.markdown("### ⚙️ System Features")
         
-        if st.button("Show Features" if not st.session_state.show_features else "Hide Features", 
+        if st.button("⚙️ Show Features" if not st.session_state.show_features else "⚙️ Hide Features", 
                     use_container_width=True):
             st.session_state.show_features = not st.session_state.show_features
             st.rerun()
         
         if st.session_state.show_features:
             features = [
-                ("Edit Distance", "Levenshtein & Damerau"),
-                ("Context Model", "Bigram & Trigram"),
-                ("Real-word Detection", "Enabled"),
+                ("Edit Distance", "Damerau-Levenshtein"),
+                ("Context Model", "Bigram + Trigram"),
+                ("Real-word Detection", "✅ Enabled"),
                 ("Domain", "Medical vocabulary"),
                 ("Dictionary", "PyEnchant + Corpus")
             ]
@@ -1849,10 +2015,10 @@ def create_streamlit_app():
         
         st.markdown("---")
         
-        # Word dictionary
+        # Word dictionary with search
         st.markdown("### 📚 Word Dictionary")
         
-        search = st.text_input("Search words", 
+        search = st.text_input("🔍 Search words", 
                               placeholder="Type to filter...",
                               label_visibility="collapsed")
         
@@ -1866,9 +2032,10 @@ def create_streamlit_app():
             
             st.caption(f"Showing {len(filtered)} of {len(all_words):,} words")
             
-            # Dictionary display
-            for word, freq in filtered:
-                st.text(f"{word:20} ({freq})")
+            # Dictionary display with fixed height scrolling
+            with st.container(height=300):
+                for word, freq in filtered:
+                    st.text(f"{word:20} ({freq})")
         else:
             st.caption("Dictionary not loaded")
         
