@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated_at": "2025-12-25T12:37:14.526642",
+    "generated_at": "2025-12-25T13:13:05.282278",
     "system": "Advanced Spelling Correction System",
     "assignment": "NLP - Part A, Question 1",
     "task": "Spelling Error Detection & Correction",
@@ -17,45 +17,45 @@
     "source": "Medical Domain (UCI Medical Transcriptions or generated)",
     "meets_requirement": true,
     "statistics": {
-      "total_words": 129292,
-      "unique_words": 6645,
-      "vocabulary_diversity": 0.051395291278656066,
-      "average_word_length": 7.4131732821829655
+      "total_words": 150008,
+      "unique_words": 6788,
+      "vocabulary_diversity": 0.04525091995093595,
+      "average_word_length": 7.222521465521839
     },
     "domain": "Medical Science",
     "domain_justification": "Medical domain chosen for specialized vocabulary and real-world application",
     "top_50_words": [
       {
         "word": "patient",
-        "frequency": 8084
+        "frequency": 8734
       },
       {
         "word": "was",
-        "frequency": 7694
+        "frequency": 8004
+      },
+      {
+        "word": "for",
+        "frequency": 7614
+      },
+      {
+        "word": "of",
+        "frequency": 7404
+      },
+      {
+        "word": "with",
+        "frequency": 7394
       },
       {
         "word": "were",
         "frequency": 7384
       },
       {
-        "word": "with",
-        "frequency": 7294
-      },
-      {
-        "word": "for",
-        "frequency": 7254
-      },
-      {
-        "word": "of",
-        "frequency": 7084
-      },
-      {
         "word": "treatment",
-        "frequency": 7084
+        "frequency": 7334
       },
       {
         "word": "symptoms",
-        "frequency": 6984
+        "frequency": 7084
       },
       {
         "word": "started.",
@@ -67,39 +67,67 @@
       },
       {
         "word": "noted.",
-        "frequency": 6744
-      },
-      {
-        "word": "and",
-        "frequency": 1910
-      },
-      {
-        "word": "to",
-        "frequency": 680
+        "frequency": 6742
       },
       {
         "word": "the",
-        "frequency": 520
+        "frequency": 2110
       },
       {
-        "word": "today.",
-        "frequency": 510
+        "word": "and",
+        "frequency": 2070
+      },
+      {
+        "word": "to",
+        "frequency": 880
       },
       {
         "word": "is",
-        "frequency": 320
+        "frequency": 790
+      },
+      {
+        "word": "today.",
+        "frequency": 760
+      },
+      {
+        "word": "will",
+        "frequency": 520
       },
       {
         "word": "in",
-        "frequency": 280
+        "frequency": 430
+      },
+      {
+        "word": "we",
+        "frequency": 400
+      },
+      {
+        "word": "this",
+        "frequency": 330
       },
       {
         "word": "follow",
-        "frequency": 270
+        "frequency": 320
       },
       {
         "word": "up",
-        "frequency": 270
+        "frequency": 320
+      },
+      {
+        "word": "a",
+        "frequency": 310
+      },
+      {
+        "word": "weird",
+        "frequency": 300
+      },
+      {
+        "word": "from",
+        "frequency": 290
+      },
+      {
+        "word": "occurrence",
+        "frequency": 288
       },
       {
         "word": "disorder",
@@ -110,120 +138,92 @@
         "frequency": 262
       },
       {
+        "word": "on",
+        "frequency": 260
+      },
+      {
+        "word": "tests",
+        "frequency": 260
+      },
+      {
         "word": "disease",
         "frequency": 258
+      },
+      {
+        "word": "important",
+        "frequency": 250
+      },
+      {
+        "word": "can",
+        "frequency": 250
+      },
+      {
+        "word": "has",
+        "frequency": 240
       },
       {
         "word": "examination",
         "frequency": 230
       },
       {
+        "word": "pain",
+        "frequency": 230
+      },
+      {
+        "word": "definitely",
+        "frequency": 228
+      },
+      {
+        "word": "separate",
+        "frequency": 228
+      },
+      {
+        "word": "normal",
+        "frequency": 220
+      },
+      {
+        "word": "all",
+        "frequency": 220
+      },
+      {
+        "word": "symptoms.",
+        "frequency": 220
+      },
+      {
+        "word": "beautiful",
+        "frequency": 218
+      },
+      {
+        "word": "at",
+        "frequency": 210
+      },
+      {
+        "word": "showed",
+        "frequency": 200
+      },
+      {
+        "word": "they",
+        "frequency": 200
+      },
+      {
         "word": "their",
         "frequency": 200
+      },
+      {
+        "word": "history",
+        "frequency": 190
       },
       {
         "word": "no",
         "frequency": 180
       },
       {
-        "word": "pain",
+        "word": "medical",
         "frequency": 180
-      },
-      {
-        "word": "will",
-        "frequency": 170
-      },
-      {
-        "word": "medications",
-        "frequency": 170
-      },
-      {
-        "word": "normal",
-        "frequency": 170
       },
       {
         "word": "signs",
         "frequency": 170
-      },
-      {
-        "word": "tests",
-        "frequency": 160
-      },
-      {
-        "word": "reported",
-        "frequency": 160
-      },
-      {
-        "word": "treatment.",
-        "frequency": 160
-      },
-      {
-        "word": "they",
-        "frequency": 150
-      },
-      {
-        "word": "scheduled",
-        "frequency": 150
-      },
-      {
-        "word": "than",
-        "frequency": 150
-      },
-      {
-        "word": "then",
-        "frequency": 150
-      },
-      {
-        "word": "we",
-        "frequency": 150
-      },
-      {
-        "word": "there",
-        "frequency": 150
-      },
-      {
-        "word": "showed",
-        "frequency": 140
-      },
-      {
-        "word": "severe",
-        "frequency": 140
-      },
-      {
-        "word": "weeks.",
-        "frequency": 120
-      },
-      {
-        "word": "from",
-        "frequency": 120
-      },
-      {
-        "word": "vital",
-        "frequency": 120
-      },
-      {
-        "word": "stable",
-        "frequency": 120
-      },
-      {
-        "word": "revealed",
-        "frequency": 120
-      },
-      {
-        "word": "without",
-        "frequency": 120
-      },
-      {
-        "word": "this",
-        "frequency": 110
-      },
-      {
-        "word": "on",
-        "frequency": 110
-      },
-      {
-        "word": "at",
-        "frequency": 110
       }
     ],
     "corpus_characteristics": {
@@ -755,17 +755,17 @@
             "suggestions": [
               {
                 "corrected": "received",
-                "confidence": 0.6746246773794217,
+                "confidence": 0.904657638048807,
                 "edit_distance": 1
               },
               {
                 "corrected": "relieved",
-                "confidence": 0.3832831213217861,
+                "confidence": 0.43384839197218816,
                 "edit_distance": 1
               },
               {
-                "corrected": "reprieved",
-                "confidence": 0.275562533086492,
+                "corrected": "retrieved",
+                "confidence": 0.24612780373689402,
                 "edit_distance": 2
               }
             ]
@@ -775,17 +775,17 @@
             "suggestions": [
               {
                 "corrected": "grammar",
-                "confidence": 0.44061928466728145,
+                "confidence": 1.0,
                 "edit_distance": 1
               },
               {
-                "corrected": "rammer",
-                "confidence": 0.39050939455739136,
+                "corrected": "grimmer",
+                "confidence": 0.43118019578138256,
                 "edit_distance": 1
               },
               {
-                "corrected": "gammer",
-                "confidence": 0.39050939455739136,
+                "corrected": "crammer",
+                "confidence": 0.43118019578138256,
                 "edit_distance": 1
               }
             ]
@@ -795,17 +795,17 @@
             "suggestions": [
               {
                 "corrected": "separate",
-                "confidence": 0.44328312132178616,
+                "confidence": 1.0,
                 "edit_distance": 1
               },
               {
                 "corrected": "desperate",
-                "confidence": 0.275562533086492,
+                "confidence": 0.24612780373689402,
                 "edit_distance": 2
               },
               {
                 "corrected": "temperate",
-                "confidence": 0.275562533086492,
+                "confidence": 0.24612780373689402,
                 "edit_distance": 2
               }
             ]
@@ -815,13 +815,13 @@
             "suggestions": [
               {
                 "corrected": "accommodation",
-                "confidence": 0.45608469301601984,
+                "confidence": 0.9641626505415494,
                 "edit_distance": 1
               }
             ]
           }
         ],
-        "processing_time_ms": 72.63684272766113
+        "processing_time_ms": 68.99428367614746
       },
       {
         "text": "The occurance was definately wierd and embarassing.",
@@ -831,14 +831,14 @@
             "word": "occurance",
             "suggestions": [
               {
-                "corrected": "occupance",
-                "confidence": 0.44538118942918625,
-                "edit_distance": 1
+                "corrected": "occurrence",
+                "confidence": 0.9584015606421235,
+                "edit_distance": 2
               },
               {
-                "corrected": "occurrence",
-                "confidence": 0.3383636455695371,
-                "edit_distance": 2
+                "corrected": "occupance",
+                "confidence": 0.49594210054328736,
+                "edit_distance": 1
               }
             ]
           },
@@ -847,12 +847,12 @@
             "suggestions": [
               {
                 "corrected": "definitely",
-                "confidence": 0.44703845655209024,
+                "confidence": 1.0,
                 "edit_distance": 1
               },
               {
                 "corrected": "definably",
-                "confidence": 0.33835424602577435,
+                "confidence": 0.3089193197519441,
                 "edit_distance": 2
               }
             ]
@@ -861,18 +861,18 @@
             "word": "wierd",
             "suggestions": [
               {
-                "corrected": "wield",
-                "confidence": 0.4320331213217861,
+                "corrected": "weird",
+                "confidence": 1.0,
                 "edit_distance": 1
               },
               {
-                "corrected": "wird",
-                "confidence": 0.38536645465511943,
+                "corrected": "wield",
+                "confidence": 0.4825983919721881,
                 "edit_distance": 1
               },
               {
                 "corrected": "wired",
-                "confidence": 0.3720331213217861,
+                "confidence": 0.4225983919721882,
                 "edit_distance": 1
               }
             ]
@@ -882,13 +882,13 @@
             "suggestions": [
               {
                 "corrected": "embarrassing",
-                "confidence": 0.455549829631496,
+                "confidence": 0.9614623644026732,
                 "edit_distance": 1
               }
             ]
           }
         ],
-        "processing_time_ms": 121.4299201965332
+        "processing_time_ms": 122.1923828125
       },
       {
         "text": "He succesfully completted the assigment.",
@@ -899,7 +899,7 @@
             "suggestions": [
               {
                 "corrected": "successfully",
-                "confidence": 0.7478465310789273,
+                "confidence": 0.8678998037397847,
                 "edit_distance": 1
               }
             ]
@@ -909,17 +909,17 @@
             "suggestions": [
               {
                 "corrected": "completed",
-                "confidence": 0.6448176079278329,
-                "edit_distance": 1
-              },
-              {
-                "corrected": "complected",
-                "confidence": 0.44703312132178613,
+                "confidence": 0.6066877412275418,
                 "edit_distance": 1
               },
               {
                 "corrected": "complotted",
-                "confidence": 0.44703312132178613,
+                "confidence": 0.49759839197218814,
+                "edit_distance": 1
+              },
+              {
+                "corrected": "complected",
+                "confidence": 0.49759839197218814,
                 "edit_distance": 1
               }
             ]
@@ -929,31 +929,31 @@
             "suggestions": [
               {
                 "corrected": "assignment",
-                "confidence": 0.4541899561739146,
+                "confidence": 0.4047399684472634,
                 "edit_distance": 1
               }
             ]
           }
         ],
-        "processing_time_ms": 99.92241859436035
+        "processing_time_ms": 97.87774085998535
       },
       {
         "text": "I went too the store to buy there groceries.",
         "errors_detected": 0,
         "errors": [],
-        "processing_time_ms": 0.053882598876953125
+        "processing_time_ms": 0.056743621826171875
       },
       {
         "text": "They said there going to the park tomorrow.",
         "errors_detected": 0,
         "errors": [],
-        "processing_time_ms": 0.004291534423828125
+        "processing_time_ms": 0.00476837158203125
       },
       {
         "text": "Its better then before.",
         "errors_detected": 0,
         "errors": [],
-        "processing_time_ms": 0.002384185791015625
+        "processing_time_ms": 0.0026226043701171875
       },
       {
         "text": "The patiant complained of servere headake.",
@@ -969,7 +969,7 @@
               },
               {
                 "corrected": "patin",
-                "confidence": 0.33704785609585286,
+                "confidence": 0.307608767209954,
                 "edit_distance": 2
               }
             ]
@@ -979,17 +979,17 @@
             "suggestions": [
               {
                 "corrected": "severe",
-                "confidence": 0.8252921015880212,
+                "confidence": 0.8549891710193807,
                 "edit_distance": 1
               },
               {
-                "corrected": "server",
-                "confidence": 0.45050030100182775,
+                "corrected": "servers",
+                "confidence": 0.49117523717266787,
                 "edit_distance": 1
               },
               {
                 "corrected": "servery",
-                "confidence": 0.44061019111171784,
+                "confidence": 0.49117523717266787,
                 "edit_distance": 1
               }
             ]
@@ -999,13 +999,13 @@
             "suggestions": [
               {
                 "corrected": "headache",
-                "confidence": 0.5959780194964055,
+                "confidence": 0.5981860809476802,
                 "edit_distance": 2
               }
             ]
           }
         ],
-        "processing_time_ms": 48.4464168548584
+        "processing_time_ms": 46.60773277282715
       },
       {
         "text": "She recieved the seperate report and sent it two her supervisor.",
@@ -1016,17 +1016,17 @@
             "suggestions": [
               {
                 "corrected": "received",
-                "confidence": 0.6746246773794217,
+                "confidence": 0.904657638048807,
                 "edit_distance": 1
               },
               {
                 "corrected": "relieved",
-                "confidence": 0.38329977873433474,
+                "confidence": 0.4338645080076434,
                 "edit_distance": 1
               },
               {
-                "corrected": "reprieved",
-                "confidence": 0.27557919049904056,
+                "corrected": "retrieved",
+                "confidence": 0.24614391977234928,
                 "edit_distance": 2
               }
             ]
@@ -1036,23 +1036,23 @@
             "suggestions": [
               {
                 "corrected": "separate",
-                "confidence": 0.4432978560958529,
+                "confidence": 1.0,
                 "edit_distance": 1
               },
               {
                 "corrected": "desperate",
-                "confidence": 0.27557726786055875,
+                "confidence": 0.2461381789746599,
                 "edit_distance": 2
               },
               {
                 "corrected": "temperate",
-                "confidence": 0.27557726786055875,
+                "confidence": 0.2461381789746599,
                 "edit_distance": 2
               }
             ]
           }
         ],
-        "processing_time_ms": 35.14719009399414
+        "processing_time_ms": 36.376237869262695
       },
       {
         "text": "The diabetis diagnosis was confirmmed after laboritory tests.",
@@ -1063,17 +1063,17 @@
             "suggestions": [
               {
                 "corrected": "diabetes",
-                "confidence": 0.7478168786750162,
-                "edit_distance": 1
-              },
-              {
-                "corrected": "diabetics",
-                "confidence": 0.4532243266840882,
+                "confidence": 0.841342184986291,
                 "edit_distance": 1
               },
               {
                 "corrected": "diabetic",
-                "confidence": 0.4432978560958529,
+                "confidence": 0.49385876720995403,
+                "edit_distance": 1
+              },
+              {
+                "corrected": "diabetics",
+                "confidence": 0.4037852377981893,
                 "edit_distance": 1
               }
             ]
@@ -1083,12 +1083,12 @@
             "suggestions": [
               {
                 "corrected": "confirmed",
-                "confidence": 0.6449548437178643,
+                "confidence": 0.606820016070593,
                 "edit_distance": 1
               },
               {
                 "corrected": "confirmand",
-                "confidence": 0.3320384565520902,
+                "confidence": 0.4026035302782599,
                 "edit_distance": 2
               }
             ]
@@ -1098,19 +1098,19 @@
             "suggestions": [
               {
                 "corrected": "laboratory",
-                "confidence": 0.6380482910185385,
+                "confidence": 0.6999074171435705,
                 "edit_distance": 1
               }
             ]
           }
         ],
-        "processing_time_ms": 118.3478832244873
+        "processing_time_ms": 118.25227737426758
       }
     ],
     "performance": {
-      "average_processing_time_ms": 55.11013666788737,
+      "average_processing_time_ms": 54.48497666252984,
       "total_errors_detected": 19,
-      "throughput": "18.15 texts/sec"
+      "throughput": "18.35 texts/sec"
     },
     "robustness": {
       "handles_empty_text": true,
@@ -1162,8 +1162,8 @@
           "misspelled": "wierd",
           "correct": "weird",
           "detected": true,
-          "top_suggestion": "wield",
-          "match": false
+          "top_suggestion": "weird",
+          "match": true
         },
         {
           "misspelled": "embarassing",
@@ -1176,12 +1176,12 @@
           "misspelled": "occurance",
           "correct": "occurrence",
           "detected": true,
-          "top_suggestion": "occupance",
-          "match": false
+          "top_suggestion": "occurrence",
+          "match": true
         }
       ],
       "detection_rate": 1.0,
-      "accuracy": 0.75,
+      "accuracy": 1.0,
       "method": "Hybrid dictionary lookup (PyEnchant + Corpus + Medical)"
     },
     "real_word_errors": {
@@ -1226,7 +1226,7 @@
     },
     "overall_performance": {
       "total_tests": 12,
-      "average_accuracy": 0.875
+      "average_accuracy": 1.0
     }
   },
   "correction_accuracy": {
@@ -1247,10 +1247,10 @@
         "expected": "grammar",
         "top_5_suggestions": [
           "grammar",
-          "rammer",
-          "gammer",
           "grimmer",
-          "crammer"
+          "crammer",
+          "gammer",
+          "rammer"
         ],
         "correct_in_top_5": true,
         "rank": 1
@@ -1280,21 +1280,21 @@
         "misspelled": "wierd",
         "expected": "weird",
         "top_5_suggestions": [
-          "wield",
-          "wird",
-          "wired",
           "weird",
-          "wider"
+          "wield",
+          "wired",
+          "wider",
+          "wird"
         ],
         "correct_in_top_5": true,
-        "rank": 4
+        "rank": 1
       }
     ],
     "metrics": {
       "accuracy": 1.0,
-      "average_rank": 1.6,
-      "top_1_accuracy": 0.8,
-      "top_3_accuracy": 0.8
+      "average_rank": 1.0,
+      "top_1_accuracy": 1.0,
+      "top_3_accuracy": 1.0
     },
     "suggestion_quality": {
       "edit_distance_considered": true,
@@ -1411,7 +1411,7 @@
         },
         {
           "name": "Corpus Vocabulary",
-          "words": "3552",
+          "words": "3673",
           "type": "Training corpus"
         }
       ],
@@ -1419,12 +1419,12 @@
       "caching": "Common words pre-cached for speed"
     },
     "vocabulary_statistics": {
-      "total_words": 3552,
+      "total_words": 3673,
       "top_1000_shown": 634,
       "frequency_distribution": {
-        "mean": 43.429022082018925,
+        "mean": 49.078864353312305,
         "median": 0.0,
-        "max": 8134,
+        "max": 8834,
         "min": 0
       }
     },
@@ -1444,11 +1444,11 @@
     "top_words": [
       {
         "word": "patient",
-        "frequency": 8134
+        "frequency": 8834
       },
       {
         "word": "treatment",
-        "frequency": 7244
+        "frequency": 7494
       },
       {
         "word": "diagnosed",
@@ -1459,6 +1459,10 @@
         "frequency": 364
       },
       {
+        "word": "examination",
+        "frequency": 330
+      },
+      {
         "word": "disorder",
         "frequency": 308
       },
@@ -1467,60 +1471,56 @@
         "frequency": 286
       },
       {
-        "word": "examination",
-        "frequency": 230
+        "word": "doctor",
+        "frequency": 260
       },
       {
         "word": "pain",
-        "frequency": 200
+        "frequency": 250
       },
       {
-        "word": "doctor",
-        "frequency": 150
+        "word": "definitely",
+        "frequency": 228
       },
       {
-        "word": "severe",
-        "frequency": 140
+        "word": "separate",
+        "frequency": 228
       },
       {
-        "word": "hypertension",
-        "frequency": 128
+        "word": "beautiful",
+        "frequency": 218
       },
       {
-        "word": "stable",
-        "frequency": 120
-      },
-      {
-        "word": "prescribed",
-        "frequency": 110
-      },
-      {
-        "word": "syndrome",
-        "frequency": 108
+        "word": "immediately",
+        "frequency": 212
       },
       {
         "word": "medication",
-        "frequency": 100
+        "frequency": 200
+      },
+      {
+        "word": "medical",
+        "frequency": 180
+      },
+      {
+        "word": "hypertension",
+        "frequency": 178
+      },
+      {
+        "word": "necessary",
+        "frequency": 168
+      },
+      {
+        "word": "prescribed",
+        "frequency": 160
+      },
+      {
+        "word": "accommodation",
+        "frequency": 156
       },
       {
         "word": "procedure",
-        "frequency": 100
-      },
-      {
-        "word": "acute",
-        "frequency": 96
-      },
-      {
-        "word": "chronic",
-        "frequency": 92
-      },
-      {
-        "word": "kidney",
-        "frequency": 92
-      },
-      {
-        "word": "condition",
-        "frequency": 90
+        "frequency": 150
       }
     ]
   },
@@ -1532,9 +1532,9 @@
       "optimization": "Caching and early stopping"
     },
     "memory": {
-      "vocabulary_words": 3552,
-      "bigram_entries": 20114,
-      "estimated_memory_mb": "0.8",
+      "vocabulary_words": 3673,
+      "bigram_entries": 20950,
+      "estimated_memory_mb": "0.9",
       "caching_strategy": "Pickle serialization"
     },
     "accuracy": {
@@ -1688,8 +1688,8 @@
       "corpus_100k_words": {
         "required": true,
         "implemented": true,
-        "actual_size": 129292,
-        "vocabulary_size": 3552,
+        "actual_size": 150008,
+        "vocabulary_size": 3673,
         "domain": "Medical Science"
       }
     },

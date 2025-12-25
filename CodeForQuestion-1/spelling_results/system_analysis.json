@@ -279,9 +279,9 @@
       "optimization": "Caching and early stopping"
     },
     "memory": {
-      "vocabulary_words": 3552,
-      "bigram_entries": 20114,
-      "estimated_memory_mb": "0.8",
+      "vocabulary_words": 3673,
+      "bigram_entries": 20950,
+      "estimated_memory_mb": "0.9",
       "caching_strategy": "Pickle serialization"
     },
     "accuracy": {
