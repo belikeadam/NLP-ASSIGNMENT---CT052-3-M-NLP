@@ -1371,7 +1371,7 @@ class AdvancedSpellChecker(ISpellChecker):
         """Check real-word confusion"""
         confusion_pairs = {
             'to': ['too', 'two'], 'too': ['to'], 'two': ['to', 'too'],
-            'their': ['there', "they're"], 'there': ['their'],
+            'their': ['there', "they're"], 'there': ['their', "they're"],
             'its': ["it's"], "it's": ['its'],
             'your': ["you're"], "you're": ['your'],
             'than': ['then'], 'then': ['than']
@@ -1379,6 +1379,22 @@ class AdvancedSpellChecker(ISpellChecker):
         
         if word not in confusion_pairs:
             return None
+        
+        # Enhanced POS-based heuristics for common patterns
+        if word == 'there' and next_word in ['going', 'coming', 'doing', 'having', 'being', 'saying']:
+            # "there going" is likely "their going" (possessive before gerund)
+            return 'their'
+        if word == 'their' and next_word in ['is', 'are', 'was', 'were']:
+            # "their is" is likely "there is"
+            return 'there'
+        if word == 'too' and next_word in ['the', 'a', 'an', 'this', 'that']:
+            # "too the" is likely "to the"
+            return 'to'
+        if word == 'to' and prev_word in ['me', 'you', 'him', 'her', 'us', 'them']:
+            # "to me too" context check
+            if next_word in ['much', 'many', 'soon', 'late', 'early']:
+                return 'too'
+        
         # First, check if the SmartSuggestionService's realword detector POS heuristic
         # suggests a direct override (e.g., 'their'->"they're"). Prefer this suggestion
         # if it exists and is allowed by confusion pairs.
@@ -1404,8 +1420,11 @@ class AdvancedSpellChecker(ISpellChecker):
         for alt in confusion_pairs[word]:
             if self.dictionary.check(alt):
                 alt_score = score_word(alt)
-                # Use configurable thresholds for detecting real-word confusions
-                if alt_score >= best_score * Config.REALWORD_IMPROVEMENT_RATIO or (alt_score - best_score) > Config.REALWORD_MIN_DELTA:
+                # More sensitive thresholds for better real-word detection
+                improvement_ratio = 1.10  # More sensitive than Config.REALWORD_IMPROVEMENT_RATIO
+                min_delta = 0.003  # More sensitive than Config.REALWORD_MIN_DELTA
+                
+                if alt_score >= best_score * improvement_ratio or (alt_score - best_score) > min_delta:
                     best_score = alt_score
                     best_alt = alt
         
@@ -1439,6 +1458,13 @@ class AdvancedSpellChecker(ISpellChecker):
         """Rank suggestions"""
         suggestions = []
         
+        # Common misspelling patterns (original -> correct)
+        common_misspellings = {
+            'wierd': 'weird', 'occurance': 'occurrence', 'recieve': 'receive',
+            'seperate': 'separate', 'definately': 'definitely', 'grammer': 'grammar',
+            'embarassing': 'embarrassing', 'accomodation': 'accommodation'
+        }
+        
         for candidate in candidates:
             if candidate == original.lower():
                 continue
@@ -1450,10 +1476,15 @@ class AdvancedSpellChecker(ISpellChecker):
             if edit_dist > Config.MAX_EDIT_DISTANCE:
                 continue
             
+            # Common misspelling boost
+            common_misspelling_boost = 0.0
+            if original.lower() in common_misspellings and candidate == common_misspellings[original.lower()]:
+                common_misspelling_boost = 0.25  # Strong boost for known corrections
+            
             freq_score = 0.7  # Default for PyEnchant words
             if self.is_trained:
                 freq_score = min(
-                    self.language_model.get_word_probability(candidate) * 500, 1.0
+                    self.language_model.get_word_probability(candidate) * 600, 1.0  # Increased from 500
                 )
             
             context_score = 0.5
@@ -1464,7 +1495,14 @@ class AdvancedSpellChecker(ISpellChecker):
                 except Exception:
                     context_score = 0.5
             
-            edit_score = 1.0 / (1 + edit_dist)
+            # Enhanced edit score: stronger boost for edit distance 1
+            if edit_dist == 1:
+                edit_score = 1.0
+            elif edit_dist == 2:
+                edit_score = 0.6
+            else:
+                edit_score = 0.3
+            
             # Source penalty/boost: penalize enchant-only words not in corpus, boost if enchant and in corpus
             src = 'corpus'
             try:
@@ -1476,7 +1514,7 @@ class AdvancedSpellChecker(ISpellChecker):
             source_boost = 0.0
             # If enchant suggested it but it's also in LM vocabulary, small boost
             if src == 'enchant' and candidate in self.language_model.vocabulary:
-                source_boost += 0.08
+                source_boost += 0.10  # Increased from 0.08
             # If enchant suggested it but it's NOT in LM vocabulary and also not a medical term, penalize
             if src == 'enchant' and candidate not in self.language_model.vocabulary:
                 if not hasattr(self, 'dictionary') or candidate not in getattr(self.dictionary, 'medical_terms', set()):
@@ -1487,7 +1525,7 @@ class AdvancedSpellChecker(ISpellChecker):
             prefix_boost = 0.0
             try:
                 if candidate.lower().startswith(original.lower()[:3]):
-                    prefix_boost = 0.05
+                    prefix_boost = 0.06  # Increased from 0.05
             except Exception:
                 prefix_boost = 0.0
 
@@ -1495,10 +1533,12 @@ class AdvancedSpellChecker(ISpellChecker):
             sim_boost = 0.0
             try:
                 sim = SequenceMatcher(None, original.lower(), candidate.lower()).ratio()
-                sim_boost = min(0.12 * sim, 0.12)
+                sim_boost = min(0.15 * sim, 0.15)  # Increased from 0.12
             except Exception:
                 sim_boost = 0.0
-            confidence = 0.3 * edit_score + 0.4 * freq_score + 0.3 * context_score + source_boost + prefix_boost + sim_boost
+            
+            # Updated confidence formula with common misspelling boost
+            confidence = 0.25 * edit_score + 0.45 * freq_score + 0.30 * context_score + source_boost + prefix_boost + sim_boost + common_misspelling_boost
             confidence = min(confidence, 1.0)
             
             reasons = []
