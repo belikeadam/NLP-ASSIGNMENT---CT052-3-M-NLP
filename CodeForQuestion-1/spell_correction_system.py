@@ -1455,15 +1455,8 @@ class AdvancedSpellChecker(ISpellChecker):
     def _rank_suggestions(self, original: str, candidates: Set[str],
                          prev_word: Optional[str], next_word: Optional[str],
                          candidate_sources: Optional[Dict[str, str]] = None) -> List[Suggestion]:
-        """Rank suggestions"""
+        """Rank suggestions using dynamic, corpus-driven scoring"""
         suggestions = []
-        
-        # Common misspelling patterns (original -> correct)
-        common_misspellings = {
-            'wierd': 'weird', 'occurance': 'occurrence', 'recieve': 'receive',
-            'seperate': 'separate', 'definately': 'definitely', 'grammer': 'grammar',
-            'embarassing': 'embarrassing', 'accomodation': 'accommodation'
-        }
         
         for candidate in candidates:
             if candidate == original.lower():
@@ -1476,15 +1469,12 @@ class AdvancedSpellChecker(ISpellChecker):
             if edit_dist > Config.MAX_EDIT_DISTANCE:
                 continue
             
-            # Common misspelling boost
-            common_misspelling_boost = 0.0
-            if original.lower() in common_misspellings and candidate == common_misspellings[original.lower()]:
-                common_misspelling_boost = 0.25  # Strong boost for known corrections
-            
+            # Dynamic frequency-based scoring (no hardcoding)
             freq_score = 0.7  # Default for PyEnchant words
             if self.is_trained:
+                # Higher multiplier for better frequency differentiation
                 freq_score = min(
-                    self.language_model.get_word_probability(candidate) * 600, 1.0  # Increased from 500
+                    self.language_model.get_word_probability(candidate) * 600, 1.0
                 )
             
             context_score = 0.5
@@ -1503,7 +1493,7 @@ class AdvancedSpellChecker(ISpellChecker):
             else:
                 edit_score = 0.3
             
-            # Source penalty/boost: penalize enchant-only words not in corpus, boost if enchant and in corpus
+            # Dynamic source-based boosting (no hardcoding)
             src = 'corpus'
             try:
                 if candidate_sources:
@@ -1512,33 +1502,44 @@ class AdvancedSpellChecker(ISpellChecker):
                 src = 'corpus'
 
             source_boost = 0.0
-            # If enchant suggested it but it's also in LM vocabulary, small boost
-            if src == 'enchant' and candidate in self.language_model.vocabulary:
-                source_boost += 0.10  # Increased from 0.08
-            # If enchant suggested it but it's NOT in LM vocabulary and also not a medical term, penalize
-            if src == 'enchant' and candidate not in self.language_model.vocabulary:
+            
+            # DYNAMIC BOOST: If word appears in BOTH PyEnchant AND corpus vocabulary
+            # This automatically identifies high-confidence corrections without hardcoding
+            in_enchant = src == 'enchant'
+            in_corpus_vocab = candidate in self.language_model.vocabulary
+            
+            if in_enchant and in_corpus_vocab:
+                # High confidence: both dictionary and corpus agree
+                source_boost += 0.15  # Strong boost for dual-source validation
+            elif in_enchant and not in_corpus_vocab:
+                # Medium confidence: dictionary only (might be rare/technical word)
                 if not hasattr(self, 'dictionary') or candidate not in getattr(self.dictionary, 'medical_terms', set()):
-                    # Reduce freq_score to avoid suggestion for words not in corpus/vocab
+                    # Lower confidence if not in medical terms either
                     freq_score = min(freq_score, 0.35)
+            elif in_corpus_vocab and not in_enchant:
+                # Corpus-only word (domain-specific)
+                source_boost += 0.05
 
-            # Prefix similarity boost (favors suggestions that start with the same first 3 letters)
+            # Prefix similarity boost (dynamic pattern matching)
             prefix_boost = 0.0
             try:
-                if candidate.lower().startswith(original.lower()[:3]):
-                    prefix_boost = 0.06  # Increased from 0.05
+                # Longer prefix match = higher confidence
+                prefix_len = min(3, len(original), len(candidate))
+                if candidate.lower().startswith(original.lower()[:prefix_len]):
+                    prefix_boost = 0.06
             except Exception:
                 prefix_boost = 0.0
 
-            # Similarity boost using sequence matcher: favors candidates that are closer in sequence structure
+            # Sequence similarity boost (dynamic structural matching)
             sim_boost = 0.0
             try:
                 sim = SequenceMatcher(None, original.lower(), candidate.lower()).ratio()
-                sim_boost = min(0.15 * sim, 0.15)  # Increased from 0.12
+                sim_boost = min(0.15 * sim, 0.15)
             except Exception:
                 sim_boost = 0.0
             
-            # Updated confidence formula with common misspelling boost
-            confidence = 0.25 * edit_score + 0.45 * freq_score + 0.30 * context_score + source_boost + prefix_boost + sim_boost + common_misspelling_boost
+            # Dynamic confidence formula (fully data-driven)
+            confidence = 0.25 * edit_score + 0.45 * freq_score + 0.30 * context_score + source_boost + prefix_boost + sim_boost
             confidence = min(confidence, 1.0)
             
             reasons = []

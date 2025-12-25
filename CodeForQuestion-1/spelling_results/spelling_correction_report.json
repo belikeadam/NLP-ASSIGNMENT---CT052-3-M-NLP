@@ -34,10 +34,10 @@
     "deployment": "Streamlit web application"
   },
   "test_results_summary": {
-    "non_word_accuracy": 1.0,
+    "non_word_accuracy": 0.75,
     "real_word_accuracy": 1.0,
     "correction_quality": 1.0,
-    "average_processing_time": 56.14013142055936
+    "average_processing_time": 55.11013666788737
   },
   "requirements_met": {
     "all_functional_requirements": true,
@@ -46,7 +46,7 @@
   },
   "detailed_results": {
     "metadata": {
-      "generated_at": "2025-12-25T12:30:12.632078",
+      "generated_at": "2025-12-25T12:37:14.526642",
       "system": "Advanced Spelling Correction System",
       "assignment": "NLP - Part A, Question 1",
       "task": "Spelling Error Detection & Correction",
@@ -801,7 +801,7 @@
               "suggestions": [
                 {
                   "corrected": "received",
-                  "confidence": 0.6246246773794218,
+                  "confidence": 0.6746246773794217,
                   "edit_distance": 1
                 },
                 {
@@ -810,7 +810,7 @@
                   "edit_distance": 1
                 },
                 {
-                  "corrected": "retrieved",
+                  "corrected": "reprieved",
                   "confidence": 0.275562533086492,
                   "edit_distance": 2
                 }
@@ -821,7 +821,7 @@
               "suggestions": [
                 {
                   "corrected": "grammar",
-                  "confidence": 0.6906192846672814,
+                  "confidence": 0.44061928466728145,
                   "edit_distance": 1
                 },
                 {
@@ -841,7 +841,7 @@
               "suggestions": [
                 {
                   "corrected": "separate",
-                  "confidence": 0.6932831213217862,
+                  "confidence": 0.44328312132178616,
                   "edit_distance": 1
                 },
                 {
@@ -861,13 +861,13 @@
               "suggestions": [
                 {
                   "corrected": "accommodation",
-                  "confidence": 0.7060846930160198,
+                  "confidence": 0.45608469301601984,
                   "edit_distance": 1
                 }
               ]
             }
           ],
-          "processing_time_ms": 73.54235649108887
+          "processing_time_ms": 72.63684272766113
         },
         {
           "text": "The occurance was definately wierd and embarassing.",
@@ -877,14 +877,14 @@
               "word": "occurance",
               "suggestions": [
                 {
-                  "corrected": "occurrence",
-                  "confidence": 0.5883636455695371,
-                  "edit_distance": 2
-                },
-                {
                   "corrected": "occupance",
                   "confidence": 0.44538118942918625,
                   "edit_distance": 1
+                },
+                {
+                  "corrected": "occurrence",
+                  "confidence": 0.3383636455695371,
+                  "edit_distance": 2
                 }
               ]
             },
@@ -893,7 +893,7 @@
               "suggestions": [
                 {
                   "corrected": "definitely",
-                  "confidence": 0.6970384565520902,
+                  "confidence": 0.44703845655209024,
                   "edit_distance": 1
                 },
                 {
@@ -907,11 +907,6 @@
               "word": "wierd",
               "suggestions": [
                 {
-                  "corrected": "weird",
-                  "confidence": 0.6220331213217861,
-                  "edit_distance": 1
-                },
-                {
                   "corrected": "wield",
                   "confidence": 0.4320331213217861,
                   "edit_distance": 1
@@ -919,6 +914,11 @@
                 {
                   "corrected": "wird",
                   "confidence": 0.38536645465511943,
+                  "edit_distance": 1
+                },
+                {
+                  "corrected": "wired",
+                  "confidence": 0.3720331213217861,
                   "edit_distance": 1
                 }
               ]
@@ -928,13 +928,13 @@
               "suggestions": [
                 {
                   "corrected": "embarrassing",
-                  "confidence": 0.7055498296314959,
+                  "confidence": 0.455549829631496,
                   "edit_distance": 1
                 }
               ]
             }
           ],
-          "processing_time_ms": 122.40242958068848
+          "processing_time_ms": 121.4299201965332
         },
         {
           "text": "He succesfully completted the assigment.",
@@ -945,7 +945,7 @@
               "suggestions": [
                 {
                   "corrected": "successfully",
-                  "confidence": 0.6978465310789272,
+                  "confidence": 0.7478465310789273,
                   "edit_distance": 1
                 }
               ]
@@ -955,16 +955,16 @@
               "suggestions": [
                 {
                   "corrected": "completed",
-                  "confidence": 0.5948176079278329,
-                  "edit_distance": 1
-                },
-                {
-                  "corrected": "complotted",
-                  "confidence": 0.44703312132178613,
+                  "confidence": 0.6448176079278329,
                   "edit_distance": 1
                 },
                 {
                   "corrected": "complected",
+                  "confidence": 0.44703312132178613,
+                  "edit_distance": 1
+                },
+                {
+                  "corrected": "complotted",
                   "confidence": 0.44703312132178613,
                   "edit_distance": 1
                 }
@@ -981,25 +981,25 @@
               ]
             }
           ],
-          "processing_time_ms": 103.45840454101562
+          "processing_time_ms": 99.92241859436035
         },
         {
           "text": "I went too the store to buy there groceries.",
           "errors_detected": 0,
           "errors": [],
-          "processing_time_ms": 0.055789947509765625
+          "processing_time_ms": 0.053882598876953125
         },
         {
           "text": "They said there going to the park tomorrow.",
           "errors_detected": 0,
           "errors": [],
-          "processing_time_ms": 0.0050067901611328125
+          "processing_time_ms": 0.004291534423828125
         },
         {
           "text": "Its better then before.",
           "errors_detected": 0,
           "errors": [],
-          "processing_time_ms": 0.0026226043701171875
+          "processing_time_ms": 0.002384185791015625
         },
         {
           "text": "The patiant complained of servere headake.",
@@ -1010,7 +1010,7 @@
               "suggestions": [
                 {
                   "corrected": "patient",
-                  "confidence": 0.9948758557537172,
+                  "confidence": 1.0,
                   "edit_distance": 1
                 },
                 {
@@ -1025,7 +1025,7 @@
               "suggestions": [
                 {
                   "corrected": "severe",
-                  "confidence": 0.7752921015880212,
+                  "confidence": 0.8252921015880212,
                   "edit_distance": 1
                 },
                 {
@@ -1034,7 +1034,7 @@
                   "edit_distance": 1
                 },
                 {
-                  "corrected": "servers",
+                  "corrected": "servery",
                   "confidence": 0.44061019111171784,
                   "edit_distance": 1
                 }
@@ -1045,13 +1045,13 @@
               "suggestions": [
                 {
                   "corrected": "headache",
-                  "confidence": 0.5459780194964057,
+                  "confidence": 0.5959780194964055,
                   "edit_distance": 2
                 }
               ]
             }
           ],
-          "processing_time_ms": 47.733306884765625
+          "processing_time_ms": 48.4464168548584
         },
         {
           "text": "She recieved the seperate report and sent it two her supervisor.",
@@ -1062,7 +1062,7 @@
               "suggestions": [
                 {
                   "corrected": "received",
-                  "confidence": 0.6246246773794218,
+                  "confidence": 0.6746246773794217,
                   "edit_distance": 1
                 },
                 {
@@ -1071,7 +1071,7 @@
                   "edit_distance": 1
                 },
                 {
-                  "corrected": "retrieved",
+                  "corrected": "reprieved",
                   "confidence": 0.27557919049904056,
                   "edit_distance": 2
                 }
@@ -1082,7 +1082,7 @@
               "suggestions": [
                 {
                   "corrected": "separate",
-                  "confidence": 0.6932978560958529,
+                  "confidence": 0.4432978560958529,
                   "edit_distance": 1
                 },
                 {
@@ -1098,7 +1098,7 @@
               ]
             }
           ],
-          "processing_time_ms": 35.33363342285156
+          "processing_time_ms": 35.14719009399414
         },
         {
           "text": "The diabetis diagnosis was confirmmed after laboritory tests.",
@@ -1109,7 +1109,7 @@
               "suggestions": [
                 {
                   "corrected": "diabetes",
-                  "confidence": 0.6978168786750162,
+                  "confidence": 0.7478168786750162,
                   "edit_distance": 1
                 },
                 {
@@ -1129,7 +1129,7 @@
               "suggestions": [
                 {
                   "corrected": "confirmed",
-                  "confidence": 0.5949548437178642,
+                  "confidence": 0.6449548437178643,
                   "edit_distance": 1
                 },
                 {
@@ -1144,19 +1144,19 @@
               "suggestions": [
                 {
                   "corrected": "laboratory",
-                  "confidence": 0.5880482910185385,
+                  "confidence": 0.6380482910185385,
                   "edit_distance": 1
                 }
               ]
             }
           ],
-          "processing_time_ms": 122.72763252258301
+          "processing_time_ms": 118.3478832244873
         }
       ],
       "performance": {
-        "average_processing_time_ms": 56.14013142055936,
+        "average_processing_time_ms": 55.11013666788737,
         "total_errors_detected": 19,
-        "throughput": "17.81 texts/sec"
+        "throughput": "18.15 texts/sec"
       },
       "robustness": {
         "handles_empty_text": true,
@@ -1208,8 +1208,8 @@
             "misspelled": "wierd",
             "correct": "weird",
             "detected": true,
-            "top_suggestion": "weird",
-            "match": true
+            "top_suggestion": "wield",
+            "match": false
           },
           {
             "misspelled": "embarassing",
@@ -1222,12 +1222,12 @@
             "misspelled": "occurance",
             "correct": "occurrence",
             "detected": true,
-            "top_suggestion": "occurrence",
-            "match": true
+            "top_suggestion": "occupance",
+            "match": false
           }
         ],
         "detection_rate": 1.0,
-        "accuracy": 1.0,
+        "accuracy": 0.75,
         "method": "Hybrid dictionary lookup (PyEnchant + Corpus + Medical)"
       },
       "real_word_errors": {
@@ -1272,7 +1272,7 @@
       },
       "overall_performance": {
         "total_tests": 12,
-        "average_accuracy": 1.0
+        "average_accuracy": 0.875
       }
     },
     "correction_accuracy": {
@@ -1326,21 +1326,21 @@
           "misspelled": "wierd",
           "expected": "weird",
           "top_5_suggestions": [
-            "weird",
             "wield",
             "wird",
             "wired",
+            "weird",
             "wider"
           ],
           "correct_in_top_5": true,
-          "rank": 1
+          "rank": 4
         }
       ],
       "metrics": {
         "accuracy": 1.0,
-        "average_rank": 1.0,
-        "top_1_accuracy": 1.0,
-        "top_3_accuracy": 1.0
+        "average_rank": 1.6,
+        "top_1_accuracy": 0.8,
+        "top_3_accuracy": 0.8
       },
       "suggestion_quality": {
         "edit_distance_considered": true,
@@ -1468,7 +1468,7 @@
         "total_words": 3552,
         "top_1000_shown": 634,
         "frequency_distribution": {
-          "mean": 43.40694006309148,
+          "mean": 43.429022082018925,
           "median": 0.0,
           "max": 8134,
           "min": 0
