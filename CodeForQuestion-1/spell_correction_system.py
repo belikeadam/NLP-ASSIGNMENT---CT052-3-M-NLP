@@ -2130,49 +2130,50 @@ def create_streamlit_app():
             
             st.markdown("### 📋 Detected Errors")
             
-            # Use fixed-height container for scrolling
-            with st.container(height=350):
-                # Display each error in an expander
-                for idx, error in enumerate(st.session_state.errors):
-                    error_type = "Non-word Error" if error['type'] == 'non-word' else "Real-word Error"
-                    badge_color = "#e74c3c" if error['type'] == 'non-word' else "#f39c12"
-                    
-                    with st.expander(f"**{error['word']}** ({error_type})", expanded=(idx < 2)):
-                        if error['suggestions']:
-                            st.markdown("**Suggestions:**")
+            # Display each error directly without minimal height constraint
+            # with st.container(): # Removed fixed container to allow natural scrolling
+
+            # Display each error in an expander
+            for idx, error in enumerate(st.session_state.errors):
+                error_type = "Non-word Error" if error['type'] == 'non-word' else "Real-word Error"
+                badge_color = "#e74c3c" if error['type'] == 'non-word' else "#f39c12"
+                
+                with st.expander(f"**{error['word']}** ({error_type})", expanded=(idx < 2)):
+                    if error['suggestions']:
+                        st.markdown("**Suggestions:**")
+                        
+                        for i, sug in enumerate(error['suggestions'], 1):
+                            conf_pct = sug.confidence * 100
                             
-                            for i, sug in enumerate(error['suggestions'], 1):
-                                conf_pct = sug.confidence * 100
+                            # Use columns for better layout: details on left, button on right
+                            col_details, col_button = st.columns([7, 3])
+                            
+                            with col_details:
+                                # Display suggestion with progress bar
+                                st.markdown(f"**{i}. {sug.corrected}**")
+                                st.progress(sug.confidence, text=f"{conf_pct:.0f}% confidence")
                                 
-                                # Use columns for better layout: details on left, button on right
-                                col_details, col_button = st.columns([7, 3])
-                                
-                                with col_details:
-                                    # Display suggestion with progress bar
-                                    st.markdown(f"**{i}. {sug.corrected}**")
-                                    st.progress(sug.confidence, text=f"{conf_pct:.0f}% confidence")
+                                reason = sug.reason if hasattr(sug, 'reason') and sug.reason else 'Similar spelling'
+                                st.caption(f"📏 Edit distance: {sug.edit_distance} | {reason}")
+                            
+                            with col_button:
+                                # Apply button aligned to the right
+                                apply_button_key = f"apply_{error['word']}_{idx}_{i}_{len(st.session_state.input_text)}"
+                                if st.button(f"✓ Apply", key=apply_button_key, use_container_width=True):
+                                    old_text = st.session_state.input_text
+                                    new_text = re.sub(r'\b' + re.escape(error['word']) + r'\b', 
+                                                    sug.corrected, st.session_state.input_text, count=1)
                                     
-                                    reason = sug.reason if hasattr(sug, 'reason') and sug.reason else 'Similar spelling'
-                                    st.caption(f"📏 Edit distance: {sug.edit_distance} | {reason}")
-                                
-                                with col_button:
-                                    # Apply button aligned to the right
-                                    apply_button_key = f"apply_{error['word']}_{idx}_{i}_{len(st.session_state.input_text)}"
-                                    if st.button(f"✓ Apply", key=apply_button_key, use_container_width=True):
-                                        old_text = st.session_state.input_text
-                                        new_text = re.sub(r'\b' + re.escape(error['word']) + r'\b', 
-                                                        sug.corrected, st.session_state.input_text, count=1)
-                                        
-                                        # Update session state
-                                        st.session_state.input_text = new_text
-                                        st.session_state.errors = [e for e in st.session_state.errors 
-                                                                  if e['word'] != error['word']]
-                                        st.session_state.debug_log = f"[DEBUG] Applied correction: '{error['word']}' → '{sug.corrected}' | Old: '{old_text}' | New: '{new_text}'"
-                                        st.success(f"Applied: {error['word']} → {sug.corrected}")
-                                        st.rerun()
-                                
-                                if i < len(error['suggestions']):
-                                    st.markdown("---")  # Separator between suggestions
+                                    # Update session state
+                                    st.session_state.input_text = new_text
+                                    st.session_state.errors = [e for e in st.session_state.errors 
+                                                              if e['word'] != error['word']]
+                                    st.session_state.correction_count += 1
+                                    st.session_state.debug_log += f" | Applied suggestion: {error['word']} -> {sug.corrected}"
+                                    st.rerun()
+                            
+                            if i < len(error['suggestions']):
+                                st.markdown("---")  # Separator between suggestions
         
         elif st.session_state.last_checked == user_input and user_input.strip():
             st.success("✅ No spelling errors detected - Your text looks good!")
