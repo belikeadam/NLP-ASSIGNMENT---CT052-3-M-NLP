@@ -1,0 +1,319 @@
+{
+  "corpus_analysis": {
+    "source": "Kaggle Medical Transcriptions Dataset",
+    "source_url": "https://www.kaggle.com/datasets/tboyle10/medicaltranscriptions",
+    "authenticity": "Real medical transcription data",
+    "meets_requirement": true,
+    "statistics": {
+      "total_words": 2403899,
+      "unique_words": 65117,
+      "vocabulary_diversity": 0.027088076495726317,
+      "average_word_length": 5.5180908182914505
+    },
+    "domain": "Medical Science",
+    "domain_justification": "Medical domain chosen for specialized vocabulary and real-world application in healthcare NLP",
+    "selection_rationale": [
+      "Authentic medical language patterns",
+      "Specialized medical terminology",
+      "Real-world clinical documentation",
+      "Large corpus size (2M+ words)",
+      "Single authoritative source",
+      "No synthetic generation",
+      "No external dictionary augmentation"
+    ],
+    "top_50_words": [
+      {
+        "word": "the",
+        "frequency": 149300
+      },
+      {
+        "word": "and",
+        "frequency": 86699
+      },
+      {
+        "word": "was",
+        "frequency": 72590
+      },
+      {
+        "word": "of",
+        "frequency": 62591
+      },
+      {
+        "word": "to",
+        "frequency": 51426
+      },
+      {
+        "word": "a",
+        "frequency": 43999
+      },
+      {
+        "word": "with",
+        "frequency": 38380
+      },
+      {
+        "word": "in",
+        "frequency": 33265
+      },
+      {
+        "word": "is",
+        "frequency": 26935
+      },
+      {
+        "word": "patient",
+        "frequency": 22321
+      },
+      {
+        "word": "for",
+        "frequency": 18022
+      },
+      {
+        "word": "no",
+        "frequency": 17799
+      },
+      {
+        "word": "she",
+        "frequency": 17580
+      },
+      {
+        "word": "were",
+        "frequency": 15641
+      },
+      {
+        "word": "he",
+        "frequency": 15394
+      },
+      {
+        "word": ",",
+        "frequency": 14827
+      },
+      {
+        "word": "on",
+        "frequency": 14803
+      },
+      {
+        "word": "at",
+        "frequency": 13517
+      },
+      {
+        "word": "this",
+        "frequency": 12772
+      },
+      {
+        "word": "right",
+        "frequency": 12097
+      },
+      {
+        "word": "then",
+        "frequency": 12078
+      },
+      {
+        "word": "left",
+        "frequency": 11642
+      },
+      {
+        "word": "has",
+        "frequency": 11287
+      },
+      {
+        "word": "as",
+        "frequency": 11097
+      },
+      {
+        "word": "or",
+        "frequency": 10651
+      },
+      {
+        "word": "that",
+        "frequency": 10537
+      },
+      {
+        "word": "her",
+        "frequency": 10083
+      },
+      {
+        "word": "there",
+        "frequency": 9120
+      },
+      {
+        "word": "had",
+        "frequency": 8471
+      },
+      {
+        "word": "his",
+        "frequency": 8142
+      },
+      {
+        "word": "be",
+        "frequency": 7757
+      },
+      {
+        "word": "an",
+        "frequency": 7076
+      },
+      {
+        "word": "not",
+        "frequency": 6922
+      },
+      {
+        "word": "from",
+        "frequency": 6568
+      },
+      {
+        "word": "are",
+        "frequency": 6298
+      },
+      {
+        "word": "placed",
+        "frequency": 6134
+      },
+      {
+        "word": "which",
+        "frequency": 5602
+      },
+      {
+        "word": "normal",
+        "frequency": 5266
+      },
+      {
+        "word": "we",
+        "frequency": 5144
+      },
+      {
+        "word": "have",
+        "frequency": 4985
+      },
+      {
+        "word": "any",
+        "frequency": 4978
+      },
+      {
+        "word": "i",
+        "frequency": 4949
+      },
+      {
+        "word": "history",
+        "frequency": 4912
+      },
+      {
+        "word": "it",
+        "frequency": 4896
+      },
+      {
+        "word": "by",
+        "frequency": 4835
+      },
+      {
+        "word": "well",
+        "frequency": 4453
+      },
+      {
+        "word": "after",
+        "frequency": 4340
+      },
+      {
+        "word": "but",
+        "frequency": 4274
+      },
+      {
+        "word": "also",
+        "frequency": 4208
+      },
+      {
+        "word": "using",
+        "frequency": 4177
+      }
+    ],
+    "corpus_characteristics": {
+      "authentic": true,
+      "single_source": true,
+      "size_adequate": true,
+      "domain_specific": true,
+      "vocabulary_rich": true,
+      "no_synthetic_generation": true,
+      "no_external_dictionaries": true
+    }
+  },
+  "vocabulary_analysis": {
+    "size": 20987,
+    "source": "Kaggle Medical Transcriptions corpus only",
+    "total_words_in_corpus": 2400617,
+    "diversity_ratio": 0.008742335824498453,
+    "frequency_distribution": {
+      "min_frequency": 1,
+      "max_frequency": 153037,
+      "average_frequency": 114.38590556058513
+    },
+    "top_10_words": [
+      {
+        "word": "the",
+        "frequency": 153037
+      },
+      {
+        "word": "and",
+        "frequency": 86923
+      },
+      {
+        "word": "was",
+        "frequency": 72648
+      },
+      {
+        "word": "of",
+        "frequency": 62817
+      },
+      {
+        "word": "to",
+        "frequency": 51991
+      },
+      {
+        "word": "a",
+        "frequency": 45052
+      },
+      {
+        "word": "with",
+        "frequency": 38529
+      },
+      {
+        "word": "in",
+        "frequency": 33551
+      },
+      {
+        "word": "is",
+        "frequency": 26978
+      },
+      {
+        "word": "patient",
+        "frequency": 25456
+      }
+    ],
+    "characteristics": {
+      "authentic": true,
+      "single_source": true,
+      "no_external_augmentation": true,
+      "domain_specific": "Medical",
+      "realistic_size": "10k-30k range"
+    }
+  },
+  "performance_metrics": {
+    "model_size": {
+      "vocabulary_size": 20987,
+      "bigram_count": 285901,
+      "total_words": 2400617
+    },
+    "efficiency": {
+      "vocabulary_lookup": "O(1) - Set membership",
+      "candidate_generation": "O(n*26) - Edit distance",
+      "suggestion_ranking": "O(k log k) - Sorting k candidates"
+    },
+    "memory_usage": {
+      "vocabulary": "Set of strings",
+      "word_frequencies": "Counter dict",
+      "bigram_frequencies": "Counter dict with tuple keys",
+      "estimated_size_mb": "Varies with corpus size"
+    },
+    "scalability": {
+      "corpus_size": "Linear with corpus size",
+      "vocabulary_growth": "Sublinear (Heaps' Law)",
+      "query_time": "Constant for vocabulary lookup"
+    }
+  }
+}
