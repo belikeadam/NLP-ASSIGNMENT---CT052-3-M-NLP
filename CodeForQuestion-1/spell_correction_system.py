@@ -8,10 +8,13 @@ FEATURES:
 + Single source of truth: Kaggle Medical Transcriptions corpus ONLY
 + Bigram language model with Laplace smoothing
 + Damerau-Levenshtein edit distance for candidate generation
-+ 3-factor scoring: Edit Distance (30%) + Frequency (40%) + Context (30%)
-+ Real-word error detection using bigram probabilities
++ Optimized 3-factor scoring: Edit Distance (40%) + Frequency (30%) + Context (30%)
++ Enhanced real-word error detection (24 confusion pairs)
++ Single-edit error boosting based on error distribution research
++ Rare word filtering (frequency threshold: 3)
++ Adaptive context scoring with strong match boosting
 + Modern Streamlit web interface
-+ 100%  implementation aligned with assignment requirements
++ 100% implementation aligned with assignment requirements
 
 INSTALLATION:
 pip install nltk kagglehub streamlit plotly
@@ -447,29 +450,48 @@ class SimpleSpellChecker(ISpellChecker):
             )
             edit_score = 1.0 / (1 + edit_dist)
             
+            # Boost for single-edit errors (most common typo type, ~80% of errors)
+            # Research: Damerau (1964) - single edits account for majority of typos
+            if edit_dist == 1:
+                edit_score = min(edit_score * 1.3, 1.0)  # 30% boost, capped at 1.0
+            
             # Factor 2: Frequency Score (40%)
             freq_score = self.language_model.get_word_probability(candidate) * 500
             freq_score = min(freq_score, 1.0)
             
-            # Factor 3: Context Score (30%)
+            # Factor 3: Context Score (30%) - Enhanced with adaptive weighting
             context_score = 0.5  # Default
             if prev_word or next_word:
                 bigram_scores = []
-                if prev_word:
-                    bigram_scores.append(
-                        self.language_model.get_bigram_probability(prev_word, candidate)
-                    )
-                if next_word:
-                    bigram_scores.append(
-                        self.language_model.get_bigram_probability(candidate, next_word)
-                    )
+                
+                # Only use context words that exist in vocabulary
+                if prev_word and prev_word in self.vocabulary:
+                    bigram_prob = self.language_model.get_bigram_probability(prev_word, candidate)
+                    bigram_scores.append(bigram_prob)
+                
+                if next_word and next_word in self.vocabulary:
+                    bigram_prob = self.language_model.get_bigram_probability(candidate, next_word)
+                    bigram_scores.append(bigram_prob)
+                
                 if bigram_scores:
                     context_score = max(bigram_scores)
+                    
+                    # Boost strong context matches (adaptive weighting)
+                    # Strong bigram evidence (>0.01) indicates good contextual fit
+                    if context_score > 0.01:
+                        context_score = min(context_score * 1.5, 1.0)  # Up to 50% boost
+                else:
+                    # Fallback: Use unigram probability when no context available
+                    context_score = self.language_model.get_word_probability(candidate) * 100
+                    context_score = min(context_score, 0.6)  # Cap fallback score
             
-            # Weighted confidence
+            # Model optimization: Adjusted weights based on error distribution research
+            # Higher edit weight reduces frequency bias (e.g., "wierd"->"weird" vs "were")
+            # Weighted confidence (optimized distribution)
+            # Prioritize edit distance (typos are usually 1-2 edits away)
             confidence = (
-                0.30 * edit_score +
-                0.40 * freq_score +
+                0.40 * edit_score +    # Increased from 0.30
+                0.30 * freq_score +    # Decreased from 0.40
                 0.30 * context_score
             )
             
@@ -513,8 +535,16 @@ class SimpleSpellChecker(ISpellChecker):
         
         # Filter: ONLY words that exist in corpus vocabulary
         valid_candidates = candidates & self.vocabulary
-        
-        return valid_candidates
+
+        # Additional filter: Exclude very rare words (frequency < 3)
+        # Rationale: Words appearing 1-2 times may be OCR/transcription errors
+        frequent_candidates = {
+            c for c in valid_candidates 
+            if self.word_freq.get(c, 0) >= 3
+        }
+
+        # Use frequent candidates if available, otherwise fall back to all valid
+        return frequent_candidates if frequent_candidates else valid_candidates
     
     def _extract_context(self, word: str, full_text: str) -> Tuple[Optional[str], Optional[str]]:
         """Extract previous and next words from context"""
@@ -532,19 +562,46 @@ class SimpleSpellChecker(ISpellChecker):
                                     next_word: Optional[str]) -> Optional[str]:
         """Check real-word confusion using bigram probabilities from corpus"""
         
-        # Common confusion pairs
+        # Extended confusion set based on common English homophone/near-homophone errors
+        # All alternatives must exist in corpus vocabulary to be suggested
         confusion_pairs = {
+            # Existing pairs
             'to': ['too', 'two'],
-            'too': ['to'],
-            'two': ['to'],
-            'their': ['there'],
-            'there': ['their'],
+            'too': ['to', 'two'],
+            'two': ['to', 'too'],
+            'their': ['there', "they're"],
+            'there': ['their', "they're"],
+            "they're": ['their', 'there'],
             'than': ['then'],
             'then': ['than'],
             'your': ["you're"],
             "you're": ['your'],
             'its': ["it's"],
             "it's": ['its'],
+            
+            # Additional common confusion pairs
+            'are': ['our'],
+            'our': ['are'],
+            'where': ['were', 'wear'],
+            'were': ['where'],
+            'wear': ['where', 'were'],
+            "we're": ['were', 'where'],
+            'of': ['off'],
+            'off': ['of'],
+            'lose': ['loose'],
+            'loose': ['lose'],
+            'accept': ['except'],
+            'except': ['accept'],
+            'affect': ['effect'],
+            'effect': ['affect'],
+            'advice': ['advise'],
+            'advise': ['advice'],
+            'principal': ['principle'],
+            'principle': ['principal'],
+            'by': ['buy', 'bye'],
+            'buy': ['by'],
+            'no': ['know'],
+            'know': ['no'],
         }
         
         if word not in confusion_pairs:
