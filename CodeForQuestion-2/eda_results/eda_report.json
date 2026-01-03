@@ -1,14 +1,12 @@
 {
   "dataset_info": {
     "num_samples": 5572,
-    "num_features": 4,
+    "num_features": 2,
     "columns": [
       "label",
-      "text",
-      "text_length",
-      "word_count"
+      "text"
     ],
-    "memory_usage": "1.06 MB"
+    "memory_usage": "1.03 MB"
   },
   "class_distribution": {
     "counts": {
