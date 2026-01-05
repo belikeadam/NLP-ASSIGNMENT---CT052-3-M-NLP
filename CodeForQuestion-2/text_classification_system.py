@@ -1300,11 +1300,149 @@ class TrainingPipeline:
         return best_model_result
 
 # ============================================================================
-# DEPLOYMENT - STREAMLIT WEB APPLICATION
+# DEPLOYMENT - STREAMLIT WEB APPLICATION (MODERN DARK THEME)
 # ============================================================================
 
+def inject_custom_css():
+    """Inject custom CSS for modern UI styling matching Q1 design language"""
+    import streamlit as st
+    st.markdown("""
+    <style>
+    /* Main app styling - Dark gradient background */
+    .main {
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+        min-height: 100vh;
+    }
+    
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        max-width: 1400px;
+    }
+    
+    /* Card components with glass morphism */
+    div[data-testid="stVerticalBlock"] > div:has(div.element-container) {
+        background: rgba(30, 41, 59, 0.5);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(100, 116, 139, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 12px;
+    }
+    
+    /* Buttons */
+    .stButton>button {
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+    }
+    
+    .stButton>button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    button[kind="primary"] {
+        background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+        color: white !important;
+        border: none !important;
+    }
+    
+    button[kind="primary"]:hover:not(:disabled) {
+        background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+        box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4) !important;
+    }
+    
+    .stButton>button:not([kind="primary"]) {
+        background: transparent !important;
+        border: 2px solid #3b82f6 !important;
+        color: #3b82f6 !important;
+    }
+    
+    .stButton>button:not([kind="primary"]):hover:not(:disabled) {
+        background: rgba(59, 130, 246, 0.1) !important;
+        border-color: #2563eb !important;
+        color: #2563eb !important;
+    }
+    
+    /* Text area - Dark theme */
+    .stTextArea>div>div>textarea {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border: 1px solid rgba(100, 116, 139, 0.5) !important;
+        color: white !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Metrics */
+    div[data-testid="stMetricValue"] {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #3b82f6;
+    }
+    
+    /* Prediction boxes - Dark theme */
+    .prediction-box {
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin: 1rem 0;
+        backdrop-filter: blur(10px);
+    }
+    
+    .spam-box {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.3));
+        border-left: 5px solid #ef4444;
+    }
+    
+    .ham-box {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.3));
+        border-left: 5px solid #22c55e;
+    }
+    
+    /* Confidence bar */
+    .confidence-bar {
+        height: 35px;
+        border-radius: 20px;
+        background-color: rgba(100, 116, 139, 0.3);
+        overflow: hidden;
+        margin: 1rem 0;
+    }
+    
+    .confidence-fill {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        transition: width 0.5s ease;
+    }
+    
+    /* Pipeline steps */
+    .pipeline-step {
+        background: rgba(59, 130, 246, 0.2);
+        padding: 6px 12px;
+        border-radius: 6px;
+        margin: 4px 0;
+        color: white;
+        border-left: 3px solid #3b82f6;
+    }
+    
+    /* Info box */
+    .info-box {
+        background: rgba(34, 197, 94, 0.1);
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+        border-left: 4px solid #22c55e;
+        color: #a7f3d0;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
 def create_deployment_app():
-    """Create Streamlit web application for deployment"""
+    """Create Streamlit web application with modern dark theme UI"""
     try:
         import streamlit as st
     except ImportError:
@@ -1315,9 +1453,11 @@ def create_deployment_app():
     st.set_page_config(
         page_title="Text Classification System",
         page_icon="🎯",
-        layout="wide",
-        initial_sidebar_state="expanded"
+        layout="wide"
     )
+    
+    # Inject custom CSS
+    inject_custom_css()
     
     # Initialize session state
     if 'input_text' not in st.session_state:
@@ -1328,119 +1468,16 @@ def create_deployment_app():
     # Custom CSS for responsive design
     st.markdown("""
         <style>
-        /* Main header */
-        .main-header {
-            font-size: clamp(1.5rem, 4vw, 2.5rem);
-            font-weight: bold;
-            text-align: center;
-            padding: 1.5rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 15px;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        /* Prediction boxes */
-        .prediction-box {
-            padding: 1.5rem;
-            border-radius: 15px;
-            margin: 1rem 0;
-            font-size: clamp(1rem, 2vw, 1.2rem);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .spam-box {
-            background: linear-gradient(135deg, #fee 0%, #fdd 100%);
-            border-left: 5px solid #e74c3c;
-        }
-        
-        .ham-box {
-            background: linear-gradient(135deg, #efe 0%, #dfd 100%);
-            border-left: 5px solid #2ecc71;
-        }
-        
-        /* Confidence bar */
-        .confidence-bar {
-            height: 35px;
-            border-radius: 20px;
-            background-color: #ecf0f1;
-            overflow: hidden;
-            margin: 1rem 0;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .confidence-fill {
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: clamp(0.9rem, 2vw, 1.1rem);
-            transition: width 0.5s ease;
-        }
-        
-        /* Metric cards */
-        .metric-card {
-            background: white;
-            padding: 1rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-        
-        /* Info box */
-        .info-box {
-            background: #e8f4f8;
-            padding: 1rem;
-            border-radius: 10px;
-            margin: 1rem 0;
-            border-left: 4px solid #3498db;
-        }
-        
-        /* Responsive adjustments */
+        /* Additional responsive styles */
         @media (max-width: 768px) {
-            .main-header {
-                padding: 1rem;
-                margin-bottom: 1rem;
-            }
-            
-            .prediction-box {
-                padding: 1rem;
-            }
-            
-            .confidence-bar {
-                height: 30px;
-            }
-        }
-        
-        /* Button styling */
-        .stButton>button {
-            border-radius: 10px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        
-        .stButton>button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            .prediction-box { padding: 1rem; }
+            .confidence-bar { height: 30px; }
         }
         </style>
     """, unsafe_allow_html=True)
+
     
-    # Header
-    st.markdown('''
-        <div class="main-header">
-            Text Classification System<br>
-            <small style="font-size: 0.6em; opacity: 0.9;">
-                Advanced NLP | Assignment Part A - Question 2
-            </small>
-        </div>
-    ''', unsafe_allow_html=True)
-    
-    # Load model
+    # Load model first to get info for header
     @st.cache_resource
     def load_model():
         try:
@@ -1448,7 +1485,7 @@ def create_deployment_app():
             return persistence_service.load_latest_model()
         except Exception as e:
             st.error(f"Error loading model: {e}")
-            st.info("Please run training first: python " + __file__ + " --mode train")
+            st.info("Please run training first: python text_classification_system.py --mode train")
             return None
     
     model_package = load_model()
@@ -1463,74 +1500,57 @@ def create_deployment_app():
     metrics = model_package['metrics']
     params = model_package.get('params', {})
     
-    # Sidebar - Model Information
-    with st.sidebar:
-        st.header("Model Information")
-        
-        st.markdown(f"""
-        <div class="metric-card">
-            <h3 style="margin:0; color:#667eea;">{model_name}</h3>
-            <p style="margin:0.5rem 0; color:#666; font-size:0.9rem;">
-                Trained: {model_package['timestamp']}
-            </p>
+    # Get dataset info for display
+    try:
+        ds = DataService()
+        df_info = ds.load_dataset()
+        total_messages = len(df_info)
+        spam_count = int(df_info['label'].value_counts().get('spam', 0))
+        ham_count = int(df_info['label'].value_counts().get('ham', 0))
+        feature_count = len(vectorizer.get_feature_names_out())
+    except:
+        total_messages = 5574
+        spam_count = 747
+        ham_count = 4827
+        feature_count = 5000
+    
+    # Sticky Header - Q1 Style
+    st.markdown(f'''
+    <div style="background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); 
+                border-bottom: 1px solid rgba(100, 116, 139, 0.2); 
+                padding: 20px; margin: -1rem -1rem 2rem -1rem; position: sticky; top: 0; z-index: 999;">
+        <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto;">
+            <div>
+                <h1 style="margin: 0; color: white; font-size: 1.5rem;">🎯 Text Classification System</h1>
+                <p style="margin: 0; color: #94a3b8; font-size: 0.875rem;">SMS Spam Detection | Advanced NLP Assignment</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="margin: 0; color: #94a3b8; font-size: 0.875rem;">
+                    Model: <span style="color: #3b82f6; font-weight: 600;">{model_name}</span> | 
+                    F1-Score: <span style="color: #22c55e; font-weight: 600;">{metrics['f1_score']*100:.1f}%</span>
+                </p>
+            </div>
         </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        st.subheader("Performance Metrics")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Accuracy", f"{metrics['accuracy']:.3f}")
-            st.metric("Precision", f"{metrics['precision']:.3f}")
-            st.metric("ROC-AUC", f"{metrics['roc_auc']:.3f}")
-        with col2:
-            st.metric("Recall", f"{metrics['recall']:.3f}")
-            st.metric("F1-Score", f"{metrics['f1_score']:.3f}")
-        
-        st.markdown("---")
-        
-        st.subheader("Model Configuration")
-        st.write(f"**Vectorizer:** TF-IDF")
-        st.write(f"**Features:** {len(vectorizer.get_feature_names_out())}")
-        st.write(f"**N-grams:** {vectorizer.ngram_range}")
-        
-        if params:
-            st.markdown("**Hyperparameters:**")
-            for param, value in params.items():
-                st.write(f"- {param}: {value}")
+    </div>
+    ''', unsafe_allow_html=True)
 
-        st.markdown("---")
-        st.subheader("Dataset Information")
-        try:
-            # Use DataService to read dataset (will use cache if available)
-            ds = DataService()
-            df_info = ds.load_dataset()
-            total = len(df_info)
-            spam_count = int(df_info['label'].value_counts().get('spam', 0))
-            ham_count = int(df_info['label'].value_counts().get('ham', 0))
-            st.write(f"**Source:** UCI SMS Spam Collection")
-            st.write(f"**Total Messages:** {total:,}")
-            st.write(f"**Spam Messages:** {spam_count} ({spam_count/total*100:.1f}%)")
-            st.write(f"**Ham Messages:** {ham_count} ({ham_count/total*100:.1f}%)")
-            st.write(f"**Features Extracted:** {len(vectorizer.get_feature_names_out())}")
-        except Exception as e:
-            st.info("Dataset not available yet. Run training to download the UCI dataset.")
-        
-        st.markdown("---")
-        
-        # Literature comparison toggle
-        if st.button("View Literature Comparison"):
-            st.session_state.show_literature = not st.session_state.show_literature
-            st.rerun()
     
-    # Main content
-    col1, col2 = st.columns([2, 1])
+
+    # ========================================================================
+    # MAIN LAYOUT - Two columns (2:1 ratio) like Q1
+    # ========================================================================
+    col_main, col_sidebar = st.columns([2, 1])
     
-    with col1:
-        st.subheader("Enter Text for Classification")
+    # ========================================================================
+    # LEFT COLUMN - TEXT INPUT & RESULTS
+    # ========================================================================
+    with col_main:
+        st.markdown("### 📝 Enter Text for Classification")
         
-        # Example buttons
+        # Example buttons - 4 columns like Q1
+        st.markdown("**📚 Quick Examples:**")
+        c1, c2, c3, c4 = st.columns(4)
+        
         import random
         
         # Load real examples from dataset
@@ -1542,33 +1562,52 @@ def create_deployment_app():
                 'spam': data_service.get_random_samples('spam', n=10),
                 'ham': data_service.get_random_samples('ham', n=10)
             }
-
+        
         examples = load_examples()
         
-        btn_col1, btn_col2, btn_col3 = st.columns([1, 1, 1])
-        with btn_col1:
-            if st.button("Try Real Spam Example", key="spam_btn"):
+        with c1:
+            if st.button("🚨 Spam Example", use_container_width=True, key="spam_btn"):
                 st.session_state.input_text = random.choice(examples['spam'])
                 st.rerun()
-        with btn_col2:
-            if st.button("Try Real Ham Example", key="ham_btn"):
+        
+        with c2:
+            if st.button("✅ Ham Example", use_container_width=True, key="ham_btn"):
                 st.session_state.input_text = random.choice(examples['ham'])
                 st.rerun()
-        with btn_col3:
-            if st.button("Clear", key="clear_btn"):
+        
+        with c3:
+            if st.button("📚 Literature", use_container_width=True):
+                st.session_state.show_literature = not st.session_state.show_literature
+                st.rerun()
+        
+        with c4:
+            if st.button("🗑️ Clear", use_container_width=True, key="clear_btn"):
                 st.session_state.input_text = ""
                 st.rerun()
         
-        # Text input - use session state variable as widget key for automatic binding
+        st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
+        
+        # Text area
         user_input = st.text_area(
             "Your message:",
-            height=150,
+            height=200,
             placeholder="Type or paste your text message here...",
             key="input_text"
         )
         
+        # Character counter
+        char_count = len(user_input)
+        if char_count > 0:
+            st.markdown(
+                f"""<div style='text-align: right; color: #94a3b8; font-size: 0.875rem; margin-top: -8px;'>
+                📊 Characters: <strong style="color: #3b82f6;">{char_count}</strong>
+                </div>""",
+                unsafe_allow_html=True
+            )
+        
         # Analyze button
-        analyze_clicked = st.button("Analyze Message", type="primary", key="analyze_btn")
+        analyze_clicked = st.button("🔍 Analyze Message", type="primary", use_container_width=True, key="analyze_btn")
+
         
         if analyze_clicked and user_input.strip():
             with st.spinner("Analyzing message..."):
@@ -1650,71 +1689,118 @@ def create_deployment_app():
                 for factor in factors:
                     st.markdown(f"- {factor}")
     
-    with col2:
-        st.subheader("Model Statistics")
+    # ========================================================================
+    # RIGHT COLUMN - STATISTICS & INFO
+    # ========================================================================
+    with col_sidebar:
+        st.markdown("### 📊 Model Statistics")
         
-        # Performance gauge
+        # Performance gauge - Dark theme colors
         fig = go.Figure(go.Indicator(
             mode="gauge+number",
             value=metrics['f1_score'] * 100,
-            title={'text': "F1-Score", 'font': {'size': 16}},
+            title={'text': "F1-Score", 'font': {'size': 16, 'color': 'white'}},
+            number={'font': {'color': 'white'}},
             gauge={
-                'axis': {'range': [None, 100]},
-                'bar': {'color': "#667eea"},
+                'axis': {'range': [None, 100], 'tickcolor': 'white'},
+                'bar': {'color': "#3b82f6"},
+                'bgcolor': "rgba(30, 41, 59, 0.5)",
                 'steps': [
-                    {'range': [0, 50], 'color': "#fee"},
-                    {'range': [50, 75], 'color': "#ffe"},
-                    {'range': [75, 100], 'color': "#dfd"}
+                    {'range': [0, 50], 'color': "rgba(239, 68, 68, 0.3)"},
+                    {'range': [50, 75], 'color': "rgba(234, 179, 8, 0.3)"},
+                    {'range': [75, 100], 'color': "rgba(34, 197, 94, 0.3)"}
                 ],
                 'threshold': {
-                    'line': {'color': "red", 'width': 4},
+                    'line': {'color': "#22c55e", 'width': 4},
                     'thickness': 0.75,
                     'value': 90
                 }
             }
         ))
-        fig.update_layout(height=250, margin=dict(l=20, r=20, t=40, b=20))
-        st.plotly_chart(fig, width='stretch')
+        fig.update_layout(
+            height=220,
+            margin=dict(l=20, r=20, t=40, b=20),
+            paper_bgcolor='rgba(0,0,0,0)',
+            font={'color': 'white'}
+        )
+        st.plotly_chart(fig, use_container_width=True)
         
-        # Dataset distribution
-        st.markdown("### Training Data")
+        # Metrics grid
+        met_col1, met_col2 = st.columns(2)
+        with met_col1:
+            st.metric("Accuracy", f"{metrics['accuracy']:.1%}")
+            st.metric("Precision", f"{metrics['precision']:.1%}")
+        with met_col2:
+            st.metric("Recall", f"{metrics['recall']:.1%}")
+            st.metric("ROC-AUC", f"{metrics['roc_auc']:.3f}")
+        
+        st.markdown("---")
+        
+        # Training data distribution - Dark theme
+        st.markdown("### 📈 Training Data")
         fig2 = go.Figure(data=[
             go.Pie(
                 labels=['Ham', 'Spam'],
-                values=[86.6, 13.4],
+                values=[ham_count, spam_count],
                 hole=0.4,
-                marker_colors=['#2ecc71', '#e74c3c'],
+                marker_colors=['#22c55e', '#ef4444'],
                 textinfo='label+percent',
-                textfont_size=11
+                textfont_size=11,
+                textfont_color='white'
             )
         ])
         fig2.update_layout(
-            height=220,
-            margin=dict(l=20, r=20, t=20, b=20),
+            height=200,
+            margin=dict(l=10, r=10, t=10, b=10),
+            paper_bgcolor='rgba(0,0,0,0)',
             showlegend=True,
-            legend=dict(orientation="h", yanchor="bottom", y=-0.1, x=0.5, xanchor="center")
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=-0.15,
+                x=0.5,
+                xanchor="center",
+                font={'color': 'white'}
+            )
         )
-        st.plotly_chart(fig2, width='stretch')
+        st.plotly_chart(fig2, use_container_width=True)
         
-        # Processing pipeline
-        st.markdown("### Processing Pipeline")
-        st.markdown("""
-        <div style="background:#f8f9fa; padding:1rem; border-radius:10px; font-size:0.85rem;">
-        <b>Steps Applied:</b><br>
-        1. Lowercase normalization<br>
-        2. URL & email removal<br>
-        3. Special character cleaning<br>
-        4. Stopword removal<br>
-        5. Lemmatization<br>
-        6. TF-IDF vectorization<br>
-        7. Bigram features
+        st.markdown("---")
+        
+        # Processing pipeline - Styled steps
+        st.markdown("### ⚙️ Processing Pipeline")
+        pipeline_steps = [
+            "1. Lowercase normalization",
+            "2. URL & email removal",
+            "3. Special character cleaning",
+            "4. Stopword removal",
+            "5. Lemmatization",
+            "6. TF-IDF vectorization",
+            "7. Bigram features"
+        ]
+        for step in pipeline_steps:
+            st.markdown(f"<div class='pipeline-step'>{step}</div>", unsafe_allow_html=True)
+        
+        st.markdown("---")
+        
+        # Dataset info
+        st.markdown("### 📚 Dataset Info")
+        st.markdown(f"""
+        <div style="color: #94a3b8; font-size: 0.9rem;">
+            <p><strong style="color: white;">Source:</strong> UCI SMS Spam Collection</p>
+            <p><strong style="color: white;">Total:</strong> {total_messages:,} messages</p>
+            <p><strong style="color: white;">Features:</strong> {feature_count:,}</p>
         </div>
         """, unsafe_allow_html=True)
+
     
-    # Literature comparison section
-    if st.session_state.show_literature:
-        st.markdown("---")
-        st.subheader("📚 Comparison with Literature")
+
+    # ========================================================================
+    # LITERATURE COMPARISON - MODAL DIALOG (No scroll needed!)
+    # ========================================================================
+    @st.dialog("📚 Literature Comparison", width="large")
+    def show_literature_dialog():
+        """Display literature comparison in a modal popup"""
         
         # Create tabs for different views
         lit_tab1, lit_tab2 = st.tabs(["📊 Performance Comparison", "📖 Paper Details"])
@@ -1753,7 +1839,6 @@ def create_deployment_app():
                 # Performance comparison analysis
                 st.markdown("---")
                 st.markdown("**📊 Analysis:**")
-                our_accuracy = metrics['accuracy']
                 our_f1 = metrics['f1_score']
                 
                 # Find closest benchmark
@@ -1796,6 +1881,12 @@ def create_deployment_app():
         demonstrate effective model training with hyperparameter tuning.
         </div>
         """, unsafe_allow_html=True)
+    
+    # Trigger dialog when literature button is clicked
+    if st.session_state.show_literature:
+        show_literature_dialog()
+        st.session_state.show_literature = False  # Reset after showing
+
 
     
     # Footer
