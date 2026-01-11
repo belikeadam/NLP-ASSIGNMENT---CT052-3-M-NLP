@@ -2,15 +2,21 @@
 ## Part B - Individual Component (40 Marks)
 ### Duration: 10-15 Minutes Screen Recording
 
+**Presenter:** Mohamed Adam Bin Ajmal Khan  
+**TP Number:** TP091722  
+**Intake:** APDMP2508AI
+
 ---
 
 # 🎬 COMPLETE PRESENTATION SCRIPT
 
 ## OPENING (30 seconds)
 
-> "Hello, my name is [YOUR NAME], and today I'll be demonstrating the Natural Language Processing systems developed for our assignment. This demonstration covers two main components: the Spelling Correction System worth 20 marks, and the Text Classification Model worth 20 marks.
+> "Hello, my name is Mohamed Adam, student ID TP091722 from intake APDMP2508AI. Today I'll be demonstrating two Natural Language Processing systems I developed for this assignment.
 
-> Both systems are deployed as web applications using Streamlit and are accessible online. Let me walk you through each system, explaining the techniques used, demonstrating the features, and discussing strengths, limitations, and potential improvements."
+> The first is a Spelling Correction System, and the second is a Text Classification Model - each worth 20 marks. Both are deployed as web applications using Streamlit.
+
+> I'll walk you through each system, show you how they work, and discuss their strengths, limitations, and potential improvements."
 
 ---
 
@@ -21,13 +27,11 @@
 
 **[Navigate to: https://q1-spell-correction.streamlit.app/]**
 
-> "This is our Spelling Correction System. As you can see from the header, the system is built using a single source of truth: the Kaggle Medical Transcriptions corpus.
+> "Here's my Spelling Correction System. Up in the header, you can see it's built on a single source of truth - the Kaggle Medical Transcriptions corpus.
 
-> **Key Statistics visible:**
-> - Vocabulary: approximately 21,000 unique words
-> - Corpus Size: over 2.4 million words
+> Looking at the statistics: we have about 21,000 unique words in our vocabulary, trained on over 2.4 million words of text.
 
-> This system was built entirely from a medical science corpus, meeting the assignment requirement of using a domain-specific corpus with at least 100,000 words. We chose medical science because it offers specialized vocabulary and real-world application in healthcare NLP."
+> I chose the medical domain because it has specialized vocabulary that's really useful for healthcare applications. This also meets the assignment requirement of using a domain-specific corpus with at least 100,000 words."
 
 ---
 
@@ -35,26 +39,16 @@
 
 **[Point to System Capabilities section on the right side]**
 
-> "Let me explain the NLP techniques implemented in this system:
+> "Let me explain the key techniques. First, we have a **Bigram Language Model with Laplace Smoothing**. This helps us understand word context by looking at word pairs. Laplace smoothing prevents zero probabilities for unseen combinations.
 
-> **1. Bigram Language Model with Laplace Smoothing:**
-> - We use bigram probabilities to understand word context
-> - Laplace smoothing handles unseen word combinations by adding a small count to prevent zero probabilities
-> - This is crucial for real-word error detection
+> Second, we use **Damerau-Levenshtein Edit Distance**. Unlike regular Levenshtein, this handles transpositions as a single edit. So 'hte' to 'the' counts as just one edit, not two.
 
-> **2. Damerau-Levenshtein Edit Distance:**
-> - This is an enhanced edit distance algorithm that supports four operations: insertion, deletion, substitution, AND transposition
-> - Traditional Levenshtein doesn't handle transposition efficiently
-> - For example, 'hte' to 'the' is just ONE edit with Damerau-Levenshtein, not two
+> Third, we have a **Three-Factor Scoring System**:
+> - 40% for Edit Distance - closer matches score higher
+> - 30% for Frequency - common words are preferred
+> - 30% for Context - words that fit the surrounding text
 
-> **3. Three-Factor Scoring System:**
-> - Edit Distance Score (40%): Prioritizes candidates closer to the misspelled word
-> - Frequency Score (30%): Prefers common words from our corpus
-> - Context Score (30%): Uses bigram probabilities to find contextually appropriate words
-
-> **4. Real-Word Error Detection:**
-> - We maintain 24 confusion pairs like 'their/there/they're', 'to/too/two'
-> - System checks if an alternative word has significantly better bigram context (20% threshold)"
+> Finally, **Real-Word Error Detection** using 24 confusion pairs like 'their' versus 'there'. The system checks if an alternative has significantly better context."
 
 ---
 
@@ -62,30 +56,23 @@
 
 **[Click "📝 Non-word" example button]**
 
-> "Let me demonstrate non-word error detection. I'll click on the 'Non-word' example button.
+> "Let me show you non-word error detection. I'll click the 'Non-word' example.
 
-> The text says: 'I recieved the grammer report seperate from the accomodation.'
-
-> Notice there are several misspelled words here. Let me click 'Check Spelling'."
+> This sentence has several misspelled words: recieved, grammer, seperate, and accomodation. Let me click 'Check Spelling'."
 
 **[Click "🔍 Check Spelling" button]**
 
-> "The system has identified multiple spelling errors:
+> "The system found multiple errors. Let's look at 'recieved' - a common misspelling of 'received'.
 
-> 1. **'recieved'** - This is a common misspelling of 'received'. You can see:
->    - A confidence progress bar showing the overall score
->    - The scoring breakdown showing edit distance, frequency score, and context score
->    - The top suggestion is 'received' with high confidence based on the combined scoring
+> You can see the confidence bar showing the overall score, and below that, a breakdown of the three scoring factors: edit distance, frequency, and context.
 
-> 2. **'grammer'** should be 'grammar'
-> 3. **'seperate'** should be 'separate' 
-> 4. **'accomodation'** should be 'accommodation'
+> The other errors are also detected: 'grammer' should be 'grammar', 'seperate' should be 'separate', and 'accomodation' should be 'accommodation'.
 
-> I can click 'Apply' on any suggestion to correct individual words, or use 'Auto-Correct All' to fix everything at once."
+> I can apply corrections one by one, or use 'Auto-Correct All' to fix everything."
 
 **[Click "✨ Auto-Correct All"]**
 
-> "All corrections have been applied. The system correctly identifies that these words don't exist in our corpus vocabulary and suggests the closest valid alternatives."
+> "Done! All corrections applied. The system correctly identified words that don't exist in our vocabulary and suggested valid alternatives."
 
 ---
 
@@ -97,15 +84,13 @@
 
 > The text says: 'The patient went too the clinic to see there doctor.'
 
-> Here, 'too' should be 'to', and 'there' should be 'their'. These are real words used in the wrong context."
+> Here, 'too' should be 'to', and 'there' should be 'their'. These are real words - just used in the wrong context."
 
 **[Click "🔍 Check Spelling"]**
 
-> "The system uses bigram context analysis to detect these errors:
-> - For 'too the', the bigram probability is much lower than 'to the' (5 vs 12,730 counts in corpus)
-> - For 'there doctor', the bigram has zero occurrences, while 'their doctor' has 4
+> "The system detects these using bigram analysis. For 'too the', the bigram count is only 5 in our corpus, while 'to the' has over 12,000 occurrences. That's a huge difference.
 
-> The system requires a 50% improvement in bigram score to suggest a correction, preventing false positives on legitimate usage."
+> For 'there doctor', we have zero occurrences, but 'their doctor' has 4. The system requires at least 50% better context to suggest a correction - this prevents false positives."
 
 ---
 
@@ -113,52 +98,31 @@
 
 **[Scroll to Dictionary Search section]**
 
-> "As required by the assignment, the system provides a searchable dictionary of all corpus words with their frequencies.
+> "The assignment also requires a searchable dictionary. Here it is - you can look up any word and see how often it appears in our corpus.
 
 **[Type 'patient' in the search box]**
 
-> You can search for any word - for example, 'patient' appears over 22,000 times in our medical corpus. This confirms our medical domain specialization."
+> For example, 'patient' appears over 22,000 times. This confirms we're working with a medical domain."
 
 ---
 
 ### 1.6 STRENGTHS & LIMITATIONS (60 seconds)
 
-> "**Strengths of our Spelling Correction System:**
+> "Let me discuss the strengths. First, it's domain-specific - trained on real medical transcriptions. Second, it's context-aware using bigram probabilities. Third, it handles both non-word AND real-word errors. Fourth, it's fast - corrections in milliseconds. And fifth, the interface is clean with the required 500-character limit.
 
-> 1. **Domain-Specific Accuracy**: Trained on real medical transcriptions, it recognizes medical terminology
-> 2. **Context-Aware**: Uses bigram probabilities for intelligent suggestions
-> 3. **Both Error Types**: Handles non-word AND real-word errors
-> 4. **Fast Performance**: Corrections are generated in milliseconds
-> 5. **User-Friendly GUI**: Clean interface with 500-character limit as required
-
-> **Limitations:**
-
-> 1. **Limited to Corpus Vocabulary**: Words not in the medical corpus may be flagged as errors
-> 2. **Bigram Context Only**: Doesn't consider longer contexts (trigrams or beyond)
-> 3. **No Part-of-Speech Awareness**: Cannot distinguish grammatical contexts
-> 4. **Fixed Confusion Pairs**: Real-word detection limited to predefined pairs"
+> For limitations: The vocabulary is limited to our corpus, so non-medical words might be flagged incorrectly. We only use bigrams, not longer contexts. There's no part-of-speech awareness. And real-word detection is limited to predefined confusion pairs."
 
 ---
 
 ### 1.7 POTENTIAL IMPROVEMENTS - POS, IR, SEMANTICS (60 seconds)
 
-> "**How could we improve this system using POS, IR, and Semantics?**
+> "How could we improve this? Three main areas:
 
-> **1. Part-of-Speech (POS) Tagging:**
-> - Add a POS tagger to understand grammatical context
-> - For example, after 'the', we expect a noun or adjective, not a verb
-> - This would help detect errors like 'I went to there house' - knowing 'there' is an adverb and we need a possessive pronoun
+> **Part-of-Speech tagging** would help understand grammar. After 'the', we expect a noun - this would catch errors like 'I went to there house' because 'there' is an adverb, not a possessive.
 
-> **2. Information Retrieval (IR) Techniques:**
-> - Use TF-IDF weighting for word importance in suggestions
-> - Implement document-level context for better understanding
-> - Use inverted indices for faster candidate retrieval
+> **Information Retrieval techniques** like TF-IDF could weight word importance better. We could use document-level context and inverted indices for faster lookups.
 
-> **3. Semantic Analysis:**
-> - Integrate word embeddings like Word2Vec or GloVe
-> - Words with similar meanings would be clustered in vector space
-> - Could detect semantic misuse: 'The doctor prescribed medicine for his patience' - semantically, 'patience' doesn't fit medical context, should be 'patients'
-> - Contextual embeddings like BERT could understand nuanced meanings"
+> **Semantic analysis** using word embeddings like Word2Vec would cluster similar words together. For example, it could catch 'The doctor prescribed medicine for his patience' - semantically, 'patience' doesn't fit a medical context, it should be 'patients'. BERT could understand even more nuanced meanings."
 
 ---
 
@@ -169,15 +133,11 @@
 
 **[Navigate to: https://q2-text-classification-system.streamlit.app/]**
 
-> "Now let me demonstrate our Text Classification System for SMS Spam Detection.
+> "Now let's look at my Text Classification System for SMS Spam Detection.
 
-> This system uses the UCI SMS Spam Collection dataset, a benchmark dataset containing 5,574 real SMS messages. The problem is binary classification: distinguishing spam messages from legitimate (ham) messages.
+> I'm using the UCI SMS Spam Collection - a benchmark dataset with about 5,500 real SMS messages. It's a binary classification problem: spam versus legitimate messages.
 
-> As you can see in the header:
-> - Current Model: Random Forest (our deployed model)
-> - F1-Score: approximately 98.9%
-
-> This is a supervised machine learning approach using five different algorithms. During training, we evaluated all five models and Random Forest achieved excellent performance with 98.9% F1-Score."
+> Up in the header, you can see we're running Random Forest with a 98.9% F1-Score. I trained five different models and Random Forest performed the best."
 
 ---
 
@@ -185,21 +145,11 @@
 
 **[Point to Model Statistics and Training Data sections]**
 
-> "Let me explain our Exploratory Data Analysis findings:
+> "About the dataset: We have about 5,500 messages total. 86% are legitimate - what we call 'ham' - and 14% are spam. So it's imbalanced, which we handled during training.
 
-> **Dataset Characteristics:**
-> - Total: 5,572 messages
-> - Ham (legitimate): 4,825 messages (86.6%)
-> - Spam: 747 messages (13.4%)
-> - This is an imbalanced dataset, which we handled appropriately
+> From our EDA, spam messages are typically longer - averaging 139 characters versus 71 for ham. Spam uses more promotional words like 'FREE', 'WIN', 'PRIZE', and has more exclamation marks and capitals.
 
-> **Key EDA Findings:**
-> - Spam messages average 139 characters vs 71 for ham
-> - Spam contains more promotional keywords ('FREE', 'WIN', 'PRIZE')
-> - Spam uses more exclamation marks and capital letters
-> - No missing values in the dataset
-
-> The pie chart here shows the class distribution visually."
+> The pie chart here shows this distribution visually."
 
 ---
 
@@ -207,24 +157,9 @@
 
 **[Point to Processing Pipeline section]**
 
-> "Our preprocessing pipeline includes seven steps:
+> "Our preprocessing has seven steps: lowercase normalization, URL and email removal - though we keep markers showing they were there - special character cleaning, selective stopword removal, lemmatization, TF-IDF vectorization, and n-gram features up to trigrams.
 
-> 1. **Lowercase normalization** - Consistency in text
-> 2. **URL & email removal** - But we keep markers indicating their presence
-> 3. **Special character cleaning** - Remove noise
-> 4. **Stopword removal** - Selective, keeping important words like 'free', 'win'
-> 5. **Lemmatization** - Normalize word forms
-> 6. **TF-IDF Vectorization** - Convert text to numerical features
-> 7. **N-gram features** - Unigrams, bigrams, and trigrams
-
-> **The Five Models We Built:**
-> 1. Naive Bayes - Baseline probabilistic classifier
-> 2. Logistic Regression - Linear model with regularization
-> 3. Support Vector Machine - Maximum margin classifier
-> 4. Random Forest - Ensemble of decision trees
-> 5. Gradient Boosting - Sequential ensemble method
-
-> Each model underwent hyperparameter tuning using Grid Search with 5-fold cross-validation."
+> We built five models: Naive Bayes as our baseline, Logistic Regression, SVM, Random Forest, and Gradient Boosting. Each one went through Grid Search hyperparameter tuning with 5-fold cross-validation."
 
 ---
 
@@ -232,25 +167,15 @@
 
 **[Click "🚨 Spam Example" button]**
 
-> "Let me demonstrate spam detection. I'll click on a spam example from our actual dataset."
+> "Let me show you spam detection. I'll click a spam example from our dataset."
 
 **[Wait for text to appear, then click "🔍 Analyze Message"]**
 
-> "The system classifies this as SPAM with high confidence. Look at the detection factors:
-> - Contains promotional/monetary keywords
-> - Uses urgent call-to-action phrases
-> - May have excessive punctuation or capitalization
-
-> The confidence meter shows our certainty level."
+> "Classified as SPAM with high confidence. You can see why - promotional keywords, urgent call-to-action, maybe excessive punctuation. The confidence meter shows how certain the model is."
 
 **[Click "✅ Ham Example" button, then "🔍 Analyze Message"]**
 
-> "Now let's try a legitimate message. This is classified as HAM (legitimate):
-> - Natural conversational language
-> - Typical personal message structure  
-> - No aggressive marketing language
-
-> The model correctly distinguishes between these types with over 99% accuracy."
+> "Now a legitimate message. Classified as HAM. Natural language, normal message structure, no aggressive marketing. The model distinguishes these with over 99% accuracy."
 
 ---
 
@@ -267,14 +192,9 @@
 
 > **Our Results:**
 > - Random Forest (deployed): 98.9% accuracy, 98.9% F1-score
-> - We trained 5 models total: SVM, Logistic Regression, Naive Bayes, Random Forest, Gradient Boosting
-> - All our models exceed literature benchmarks
+> Our results: Random Forest at 98.9%. All five of our models actually exceed the literature benchmarks.
 
-> This improvement is attributed to:
-> 1. Enhanced preprocessing including spelling correction
-> 2. Optimized TF-IDF parameters with n-grams up to trigrams
-> 3. Comprehensive hyperparameter tuning using Grid Search
-> 4. Feature engineering (URL markers, currency detection, etc.)"
+> We achieved this through enhanced preprocessing, optimized TF-IDF with trigrams, thorough hyperparameter tuning, and good feature engineering."
 
 **[Close the dialog]**
 
@@ -284,83 +204,41 @@
 
 **[Point to the performance gauge and metrics]**
 
-> "Looking at our deployed model's performance:
+> "Looking at the metrics: 98.9% accuracy, precision, and recall. ROC-AUC is 0.993 - excellent discrimination.
 
-> - **Accuracy**: 98.9% - Overall correctness
-> - **Precision**: 98.9% - Of messages flagged as spam, 98.9% were actually spam
-> - **Recall**: 98.9% - We caught 98.9% of all spam messages
-> - **ROC-AUC**: 0.993 - Excellent discrimination ability
+> Very few false positives - that means legitimate messages rarely get flagged as spam. And very few false negatives - spam rarely slips through.
 
-> The confusion matrices in our report show:
-> - Very few false positives (legitimate messages marked as spam)
-> - Very few false negatives (spam messages missed)
-> 
-> Random Forest achieves this through ensemble learning - combining multiple decision trees to make robust predictions."
+> Random Forest works well here because it combines multiple decision trees, making predictions more robust."
 
 ---
 
 ### 2.7 STRENGTHS & LIMITATIONS (60 seconds)
 
-> "**Strengths of our Text Classification System:**
+> "Strengths: High accuracy at 98.9% F1-score, exceeding published benchmarks. We compared five different algorithms with proper Grid Search tuning. It's deployed for real-time classification and shows what influenced each prediction.
 
-> 1. **High Accuracy**: 98.9% F1-score exceeds published benchmarks
-> 2. **Multiple Models**: We compared 5 different algorithms
-> 3. **Proper Tuning**: Grid search optimization for each model
-> 4. **Real-time Deployment**: Instant classification on the web
-> 5. **Interpretable**: Shows factors that influenced classification
-
-> **Limitations:**
-
-> 1. **Binary Classification Only**: Cannot handle multi-class scenarios
-> 2. **English Only**: Not trained on other languages
-> 3. **Static Model**: Doesn't adapt to new spam patterns
-> 4. **Dataset Bias**: Trained on SMS format, may not generalize to email
-> 5. **No Deep Learning**: Using traditional ML, not neural networks"
+> Limitations: It's binary only - spam or not spam, no multi-class. English only. The model is static, doesn't adapt to new spam patterns. And it's trained on SMS, so might not generalize well to email. We're using traditional ML, not deep learning."
 
 ---
 
 ### 2.8 POTENTIAL IMPROVEMENTS (60 seconds)
 
-> "**How could we improve this deployment further?**
+> "For improvements: We could use deep learning like BERT or LSTM, or transfer learning from pre-trained models. Active learning would let the system improve from user feedback.
 
-> **1. Model Improvements:**
-> - Implement deep learning models like BERT or LSTM
-> - Use transfer learning from pre-trained language models
-> - Add active learning to continuously improve from user feedback
+> For features: metadata like send time, character-level features for detecting obfuscation, and word embeddings instead of TF-IDF.
 
-> **2. Feature Engineering:**
-> - Include metadata features (time sent, sender reputation)
-> - Add character-level features for obfuscation detection
-> - Implement word embeddings instead of TF-IDF
-
-> **3. Deployment Enhancements:**
-> - Add batch processing for multiple messages
-> - Implement API endpoints for integration
-> - Add model versioning and A/B testing
-> - Include confidence calibration for better probability estimates
-
-> **4. Real-world Considerations:**
-> - Handle adversarial attacks (spammers trying to evade detection)
-> - Implement periodic retraining on new data
-> - Add explainability features (LIME, SHAP) for transparency"
+> For deployment: batch processing, API endpoints, model versioning, and A/B testing. Also, handling adversarial attacks, periodic retraining, and explainability with LIME or SHAP."
 
 ---
 
 # CLOSING (30 seconds)
 
-> "In conclusion, I have demonstrated two NLP systems that meet all assignment requirements:
+> "To wrap up: I've demonstrated two NLP systems that meet all the assignment requirements.
 
-> **Spelling Correction System:**
-> - Uses bigram language model and Damerau-Levenshtein edit distance
-> - Handles both non-word and real-word errors
-> - Built on a 2.4 million word medical corpus
+> My Spelling Correction System uses a bigram language model with Damerau-Levenshtein edit distance. It handles both non-word and real-word errors, built on a 2.4 million word medical corpus.
 
-> **Text Classification System:**
-> - Achieves 98.9% accuracy on spam detection using Random Forest
-> - Trained and compared 5 ML algorithms with hyperparameter tuning
-> - Exceeds published literature benchmarks
+> My Text Classification System achieves 98.9% accuracy on spam detection using Random Forest. I trained and compared five ML algorithms with proper tuning, and all exceed published benchmarks.
 
-> Both systems are deployed as web applications and demonstrate practical NLP applications. Thank you for watching this demonstration."
+> Both are deployed as web applications. Thank you for watching."
 
 ---
 
