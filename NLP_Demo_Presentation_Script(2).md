@@ -80,17 +80,17 @@
 
 **[Click "🗑️ Clear" then "🔄 Real-word" example button]**
 
-> "Now let me demonstrate real-word error detection, which is more challenging because the misspelled words actually exist in the dictionary.
+> "Now let me show real-word error detection. This is harder because these words actually exist in the dictionary - they're just used in the wrong context.
 
 > The text says: 'The patient went too the clinic to see there doctor.'
 
-> Here, 'too' should be 'to', and 'there' should be 'their'. These are real words - just used in the wrong context."
+> Here, 'too' should be 'to', and 'there' should be 'their'. Let me click 'Check Spelling'."
 
 **[Click "🔍 Check Spelling"]**
 
-> "The system detects these using bigram analysis. For 'too the', the bigram count is only 5 in our corpus, while 'to the' has over 12,000 occurrences. That's a huge difference.
+> "The system detected both real-word errors. Looking at 'too' - it shows 85% confidence and suggests 'to'. You can see the label says 'real-word confusion: too→to'.
 
-> For 'there doctor', we have zero occurrences, but 'their doctor' has 4. The system requires at least 50% better context to suggest a correction - this prevents false positives."
+> Same for 'there' - 85% confidence, suggesting 'their'. The system uses bigram analysis behind the scenes to determine which word fits better in context."
 
 ---
 
