@@ -73,10 +73,9 @@
 > "The system has identified multiple spelling errors:
 
 > 1. **'recieved'** - This is a common misspelling of 'received'. You can see:
->    - The confidence score
->    - The edit distance
->    - The frequency and context scores that contributed to this suggestion
->    - The top suggestion is 'received' with edit distance of 2 (transposition of 'i' and 'e', plus context)
+>    - A confidence progress bar showing the overall score
+>    - The scoring breakdown showing edit distance, frequency score, and context score
+>    - The top suggestion is 'received' with high confidence based on the combined scoring
 
 > 2. **'grammer'** should be 'grammar'
 > 3. **'seperate'** should be 'separate' 
