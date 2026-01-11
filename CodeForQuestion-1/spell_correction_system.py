@@ -1013,7 +1013,7 @@ def create_streamlit_app():
             - ✅ Damerau-Levenshtein edit distance
             - ✅ Non-word error detection (edit distance)
             - ✅ Real-word error detection (bigram context)
-            - ✅ 3-factor scoring: Edit Distance (30%) + Frequency (40%) + Context (30%)
+            - ✅ 3-factor scoring: Edit Distance (40%) + Frequency (30%) + Context (30%)
             
             **Data Source:**
             - Single source of truth: Kaggle Medical Transcriptions
