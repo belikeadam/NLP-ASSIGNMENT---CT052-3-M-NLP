@@ -87,7 +87,8 @@ class Config:
     CACHE_VOCABULARY = os.path.join(CACHE_DIR, "vocabulary.pkl")
     
     # Real-word detection settings
-    REALWORD_IMPROVEMENT_THRESHOLD = 1.2  # 20% better bigram score required
+    REALWORD_IMPROVEMENT_THRESHOLD = 1.5  # 50% better bigram score required (more conservative)
+    REALWORD_MIN_SCORE_THRESHOLD = 1e-6  # Minimum score required to trigger real-word correction
     
     @classmethod
     def initialize(cls):
@@ -598,10 +599,9 @@ class SimpleSpellChecker(ISpellChecker):
             'advise': ['advice'],
             'principal': ['principle'],
             'principle': ['principal'],
-            'by': ['buy', 'bye'],
-            'buy': ['by'],
             'no': ['know'],
             'know': ['no'],
+            # Note: buy/by removed as 'buy' only occurs once in medical corpus
         }
         
         if word not in confusion_pairs:
@@ -624,8 +624,11 @@ class SimpleSpellChecker(ISpellChecker):
         for alt in confusion_pairs[word]:
             if alt in self.vocabulary:  # Must exist in corpus
                 alt_score = score_word(alt)
-                # Require significant improvement (20% better)
-                if alt_score > best_score * Config.REALWORD_IMPROVEMENT_THRESHOLD:
+                # Require BOTH:
+                # 1. Significant improvement (50% better) - more conservative to prevent false positives
+                # 2. Alternative has meaningful score - prevents false positives in low-frequency contexts
+                if (alt_score > best_score * Config.REALWORD_IMPROVEMENT_THRESHOLD and 
+                    alt_score > Config.REALWORD_MIN_SCORE_THRESHOLD):
                     best_score = alt_score
                     best_alt = alt
         
@@ -633,8 +636,11 @@ class SimpleSpellChecker(ISpellChecker):
     
     def get_all_words_sorted(self) -> List[Tuple[str, int]]:
         """Get sorted list of all words with frequencies"""
-        words = [(w, self.word_freq.get(w, 0)) for w in list(self.vocabulary)[:1000]]
-        return sorted(words, key=lambda x: (-x[1], x[0]))[:1000]
+        # Sort ALL vocabulary words by frequency first, then take top 1000
+        # This ensures dictionary search includes most common words like 'patient'
+        all_words = [(w, self.word_freq.get(w, 0)) for w in self.vocabulary]
+        sorted_words = sorted(all_words, key=lambda x: (-x[1], x[0]))
+        return sorted_words[:1000]
 
 # ============================================================================
 # STREAMLIT WEB DEPLOYMENT
@@ -817,7 +823,10 @@ def create_streamlit_app():
         
         with c2:
             if st.button("🔄 Real-word", use_container_width=True):
-                st.session_state.input_text = "I went too the store to buy there groceries."
+                # Use sentence with words that have good bigram coverage in medical corpus
+                # 'too the' will detect: 'to the' (12730) vs 'too the' (5)
+                # 'to there doctor' will detect: 'to their' (33) vs 'to there' (20), 'their doctor' (4) vs 'there doctor' (0)
+                st.session_state.input_text = "The patient went too the clinic to see there doctor."
                 st.session_state.errors = []
                 st.session_state.last_checked = ""
                 st.rerun()
