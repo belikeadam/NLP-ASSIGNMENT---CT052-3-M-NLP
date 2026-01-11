@@ -1776,7 +1776,7 @@ def create_deployment_app():
             "4. Stopword removal",
             "5. Lemmatization",
             "6. TF-IDF vectorization",
-            "7. Bigram features"
+            "7. N-gram features (1-3)"
         ]
         for step in pipeline_steps:
             st.markdown(f"<div class='pipeline-step'>{step}</div>", unsafe_allow_html=True)
